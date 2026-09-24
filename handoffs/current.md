@@ -16,4 +16,4 @@
 
 ## Remaining limitations and next task
 
-The included CSV records are clearly marked demo fixtures because the course-supplied files were not in the workspace. Replace them with the supplied rows before final submission, then repeat the browser checks using those data, test the visible **Delete test booking** action, and update `report.md` with screenshots plus the real repository URL and commits. This repository has no Git history or remote yet.
+The included CSV records are clearly marked demo fixtures because the course-supplied files were not in the workspace. The supplied data archive is now available; replace the development data with those rows before final submission, then repeat the browser checks using those data, test the visible **Delete test booking** action, and add screenshots. The GitHub remote is configured, and the initial Part 2 implementation commit is `6b75638`; a distinct Part 1 checkpoint has not yet been created.

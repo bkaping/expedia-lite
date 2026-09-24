@@ -3,7 +3,7 @@
 ## Repository and commit
 
 Repository URL: [https://github.com/bkaping/expedia-lite](https://github.com/bkaping/expedia-lite)
-Submitted Part 2 commit: `[replace with the reviewed, merged commit SHA]`
+Submitted Part 2 implementation commit: [6b75638](https://github.com/bkaping/expedia-lite/commit/6b75638)
 Part 1 checkpoint: `[replace with the Part 1 commit SHA]`
 
 ## Implementation
