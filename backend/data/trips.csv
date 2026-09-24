@@ -1,0 +1,7 @@
+id,hotel_id,check_in,check_out,room_type,available_rooms,nightly_rate
+101,1,2026-10-10,2026-10-13,Harbor King,4,189.00
+102,1,2026-11-07,2026-11-10,Harbor King,3,199.00
+201,2,2026-10-17,2026-10-20,Poolside Queen,5,149.00
+202,2,2026-11-14,2026-11-17,Poolside Queen,2,159.00
+301,3,2026-10-24,2026-10-27,Garden Suite,3,169.00
+302,3,2026-11-21,2026-11-24,Garden Suite,4,179.00

@@ -1,0 +1,3 @@
+id,user_id,hotel_id,trip_id,guest_name,guests,status,total_price,created_at
+1,1,1,101,Alex Morgan,2,confirmed,1134.00,2026-08-20T14:30:00+00:00
+2,2,2,201,Jordan Lee,1,cancelled,447.00,2026-08-22T10:15:00+00:00
