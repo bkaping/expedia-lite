@@ -14,4 +14,4 @@
 
 ## Remaining limitations and next task
 
-The supplied data are installed. Next, run the browser using the exact commands in `README.md`, capture one successful search and one no-results search, add those screenshot files to the repository, then create the Part 1 checkpoint commit. Part 2 persistence work is intentionally deferred.
+The supplied data are installed. The Part 1 checkpoint is `82d43ec`. Next, capture one successful search and one no-results search, add those screenshot files to the repository, and push the reviewed checkpoint. Part 2 persistence work is intentionally deferred.
