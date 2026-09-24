@@ -19,10 +19,11 @@ FastAPI reads the supplied `hotels.csv` file and returns matching hotel records 
 | Search a name that is not in the CSV data | A clear no-results message appears. | Observed in the local browser: `No hotels matched “Atlantis”. Try another hotel name.` |
 | Review the Part 1 changes | The Vue client, FastAPI endpoint, CSV join, and table labels are readable and consistent. | Pending final VS Code review. |
 
-Add repository-hosted screenshots after the manual checks:
+Screenshots from the manual browser checks:
 
-- `[Successful CSV search screenshot](replace-with-accessible-repository-image-URL)`
-- `[No-results screenshot](replace-with-accessible-repository-image-URL)`
+![Successful hotel search: Harbor Lantern Hotel](../../screenshots/part1-hotel-search-success.png)
+
+![No-results hotel search: Atlantis](../../screenshots/part1-hotel-search-no-results.png)
 
 ## Project context and next steps
 

@@ -16,10 +16,11 @@ Wayfarer Lite provides a hotel-name search flow. The Vue frontend collects the h
 | Search `Harbor` | Harbor Lantern Hotel appears with its city, state, and nightly rate. | Observed in the local browser: Harbor Lantern Hotel, Boston, MA, and $150.00 appeared in the labeled results table. |
 | Search a nonmatching name | A clear no-results message appears. | Observed in the local browser: `No hotels matched “Atlantis”. Try another hotel name.` |
 
-Add accessible repository-hosted screenshots here after manually completing the browser checks:
+Screenshots from the manual browser checks:
 
-- `[Successful hotel-search screenshot](replace-with-accessible-repository-image-URL)`
-- `[No-results screenshot](replace-with-accessible-repository-image-URL)`
+![Successful hotel search: Harbor Lantern Hotel](screenshots/part1-hotel-search-success.png)
+
+![No-results hotel search: Atlantis](screenshots/part1-hotel-search-no-results.png)
 
 ## Project context and next steps
 
