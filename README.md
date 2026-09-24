@@ -1,13 +1,12 @@
-# Wayfarer Lite
+# Wayfarer Lite — Part 1
 
-Wayfarer Lite is a local hotel-stay demonstration application for the Travel Application assignment. It uses a Vue frontend, a FastAPI backend, CSV starter fixtures, and a persistent SQLite database.
+Wayfarer Lite is the Part 1 CSV hotel-search application for the Travel Application assignment. It uses a Vue frontend, a FastAPI backend, and the supplied course CSV data.
 
 ## What it does
 
-- Searches hotel names and displays each matching hotel with its available stays.
-- Creates simulated bookings from a selected stay.
-- Lists booking history, cancels a booking without removing it, and deletes a test booking.
-- Seeds SQLite exactly once from the CSV files, then reads and writes only SQLite. Browser refreshes and server restarts retain changes.
+- Lets a user enter a hotel name and select **Search**.
+- Displays matching hotels in a table with hotel name, city, state, and nightly rate.
+- Shows a clear message when no hotel name matches.
 
 ## Requirements
 
@@ -44,21 +43,19 @@ The API defaults to `http://127.0.0.1:8000`. To use another API address, create 
 Run both commands from this repository, not from a similarly named copy elsewhere. If ports `8000` or `5173` are occupied, use this matched pair instead:
 
 ```bash
-uvicorn app.main:app --app-dir backend --port 8019
+uvicorn app.main:app --app-dir backend --port 8020
 ```
 
 ```bash
 cd frontend
-VITE_API_BASE_URL=http://127.0.0.1:8019 npm run dev -- --port 5174
+VITE_API_BASE_URL=http://127.0.0.1:8020 npm run dev -- --port 5176
 ```
 
-Then open `http://127.0.0.1:5174`. The frontend and backend port values must match.
+Then open `http://127.0.0.1:5176`. The frontend and backend port values must match.
 
-## Data and reset behavior
+## Data
 
-The first backend startup creates `backend/data/travel.db` and imports the four CSV files in `backend/data/`. Those CSV files are small demo fixtures because course-provided source files were not included in this workspace. Replace their rows with the supplied records before submission, keeping their headers and IDs.
-
-The database is intentionally ignored by Git. Do not delete it in normal use: that preserves new bookings and status changes. To intentionally reset only the local demo database after stopping the backend, delete the specific file `backend/data/travel.db`; the next startup will seed it again from the CSV fixtures.
+The backend reads `backend/data/hotels.csv` directly on every search. The supplied course file contains eight hotels, including Harbor Lantern Hotel, Maple Square Inn, and Metro Garden Hotel. The remaining supplied CSV files are retained for Part 2.
 
 ## Checks
 

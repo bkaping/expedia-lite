@@ -5,6 +5,14 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
+class HotelMatch(BaseModel):
+    hotel_id: str
+    hotel_name: str
+    city: str
+    state: str
+    nightly_rate_usd: float
+
+
 class Stay(BaseModel):
     id: int
     hotel_id: int

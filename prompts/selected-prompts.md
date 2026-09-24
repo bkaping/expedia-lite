@@ -1,9 +1,9 @@
-# Selected prompts
+# Selected prompts — Part 1
 
 ## Project build
 
-> Build the complete two-part local travel application in an empty workspace using Vue, FastAPI, CSV starter data, and SQLite. Include search, booking CRUD, durable seeding, concise project documentation, and verification artifacts.
+> Update the Part 1 application to match the course demonstration: search the supplied hotel CSV by hotel name and display only matching hotel records in the Vue frontend.
 
 ## Implementation guardrails
 
-> Keep the frontend and backend separate. Seed the database once from CSV while preserving source IDs; after that, use SQLite for all reads and writes. Ensure cancellation retains a booking and deletion is performed through the interface.
+> Keep the Vue client and FastAPI service separate. Use the supplied CSV headers and IDs exactly, provide clear no-results feedback, and document the manual browser checks needed for submission.

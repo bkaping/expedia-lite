@@ -1,17 +1,13 @@
-# Design note — Wayfarer Lite
+# Design note — Wayfarer Lite Part 1
 
 ## Responsibilities
 
-The Vue view owns the visible state: search text, returned stays, booking form values, feedback, and booking history. It sends every data operation through the FastAPI API; it does not read CSV or SQLite files.
+The Vue view owns the visible search text, matching hotel rows, loading state, and no-results feedback. It sends a hotel-name query to FastAPI; it does not read CSV files itself.
 
-FastAPI is the request boundary. It validates request shapes, exposes search and booking CRUD endpoints, translates domain errors into useful HTTP responses, and allows the local Vue development server through CORS.
+FastAPI is the request boundary. It validates the hotel-name query, exposes the search endpoint, returns matching hotels, and allows the local Vue development server through CORS.
 
-The Python database controller is the model/controller layer. It owns schema setup, imports fixture CSV data only on the first successful run, joins hotels with stays, and makes create, read, update, and delete changes inside SQLite transactions. SQLite stores the durable state after seeding.
-
-## Data relationships
-
-`hotels (1) → trips/stays (many)` and `users (1) → bookings (many)`. A booking links one user, hotel, and trip. A confirmed booking consumes one room from its trip; cancellation and deletion return that room. Cancellation keeps the booking record; delete removes only the chosen test booking.
+The Python CSV search controller is the model/controller layer for Part 1. It reads the supplied `hotels.csv` file using UTF-8 BOM-safe decoding and filters hotel names case-insensitively. The returned model contains the hotel ID, name, city, state, and nightly rate.
 
 ## Interface decisions
 
-The screen follows the natural task sequence: search, book, then inspect history. Clear labels, a table caption, visible status chips, direct feedback, and an explicit delete confirmation support recognition and error prevention. It uses responsive layout and visible keyboard focus indicators so the same functions remain usable on a narrow screen or without a mouse.
+The screen centers one task: search for a hotel. Clear labels, a labeled results table, direct no-results feedback, responsive layout, and visible keyboard focus indicators make the required workflow easy to demonstrate.
