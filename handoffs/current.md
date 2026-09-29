@@ -18,5 +18,5 @@
 
 ## Remaining work
 
-- Record the Assignment 2 Part 1 demo, add its accessible link to `report.md`, replace the assessed-commit placeholder after committing, and push the branch.
+- Record the Assignment 2 Part 1 demo and add its accessible link to `report.md`.
 - Assignment 2 Part 2 shortlist persistence is deliberately out of scope.

@@ -3,7 +3,7 @@
 ## Project access
 
 - Repository: [https://github.com/bkaping/expedia-lite](https://github.com/bkaping/expedia-lite)
-- Assessed commit: pending final checked commit
+- Assessed implementation commit: [71a9add](https://github.com/bkaping/expedia-lite/commit/71a9add)
 - Setup: follow the [README](README.md). Create a local root `.env` from [`.env.example`](.env.example) and set `GEOAPIFY_API_KEY`; do not commit, upload, or record the real value.
 
 ## Research notes
@@ -35,13 +35,13 @@ The result count is not treated as fixed: live provider coverage can change. The
 
 ## Screenshot evidence
 
-![Live Geoapify hotel results near ZIP 02108, including the synchronized list and map](screenshots/assignment2-part1/live-results-map.png)
+![Live Geoapify hotel results near ZIP 02108, including the synchronized list and map](https://raw.githubusercontent.com/bkaping/expedia-lite/71a9add/screenshots/assignment2-part1/live-results-map.png)
 
-![A map-marker selection opens the matching provider-place popup](screenshots/assignment2-part1/map-marker-selection.png)
+![A map-marker selection opens the matching provider-place popup](https://raw.githubusercontent.com/bkaping/expedia-lite/71a9add/screenshots/assignment2-part1/map-marker-selection.png)
 
-![A list selection for Beacon Hill Hotel and Bistro highlights the card and opens the corresponding map popup](screenshots/assignment2-part1/list-map-selection.png)
+![A list selection for Beacon Hill Hotel and Bistro highlights the card and opens the corresponding map popup](https://raw.githubusercontent.com/bkaping/expedia-lite/71a9add/screenshots/assignment2-part1/list-map-selection.png)
 
-![Invalid three-digit ZIP input produces clear feedback](screenshots/assignment2-part1/invalid-zip.png)
+![Invalid three-digit ZIP input produces clear feedback](https://raw.githubusercontent.com/bkaping/expedia-lite/71a9add/screenshots/assignment2-part1/invalid-zip.png)
 
 ## AI disclosure and evidence log
 
@@ -52,4 +52,4 @@ The result count is not treated as fixed: live provider coverage can change. The
 
 ## Remaining limits and next step
 
-The implementation is limited to provider-listed hotel places within 5 km and does not make booking or inventory claims. Record the required live browser demo, add its accessible link above, record the final commit hash, and upload this file as `report.md` to the Assignment 2 Part 1 submission page.
+The implementation is limited to provider-listed hotel places within 5 km and does not make booking or inventory claims. Record the required live browser demo, add its accessible link above, and upload this file as `report.md` to the Assignment 2 Part 1 submission page.
