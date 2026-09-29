@@ -1,17 +1,22 @@
-# Current handoff — Wayfarer Lite Part 1
+# Current handoff — Wayfarer Lite Assignment 2, Part 1
 
 ## What works
 
-- Vue accepts a hotel name, displays matching course hotels in a labeled table, and handles no matches.
-- FastAPI exposes a hotel-search endpoint.
-- The CSV search controller reads the supplied `hotels.csv` data and performs case-insensitive partial-name matching.
+- Vue accepts five-digit U.S. ZIP input and presents loading, invalid, unresolved, empty, failed, rate-limited, and successful-result states.
+- FastAPI resolves the exact requested U.S. ZIP through Geoapify, then searches `accommodation.hotel` places in a 5 km circle around that returned coordinate.
+- The live response returns provider names, addresses, place IDs, and coordinates only. The Vue list and Leaflet markers share one selected place.
+- Root `.env` is ignored and the backend uses it without exposing the key to Vue.
 
 ## Checked
 
-- `python3 -m unittest discover -s backend/tests -v`
-- `npm run build` from `frontend/`
-- Browser check on the Part 1 app: `Harbor` returned Harbor Lantern Hotel, and `Atlantis` displayed the required no-results message.
+- `npm install leaflet` after approval: installed Leaflet 1.9.4; npm audit reported no vulnerabilities.
+- `certifi` was added after the standard Python TLS store failed to verify Geoapify; all backend unit tests passed after the change.
+- `python3 -m unittest discover -s backend/tests -v`: 5 passing tests.
+- `npm run build` from `frontend/`: production build passed.
+- Live check on September 29, 2026: ZIP `02108` resolved to Boston, Massachusetts and returned 20 provider hotel places within the documented 5 km / 20-result limit.
+- Manual browser checks recorded in `screenshots/assignment2-part1/`: live list/map results, marker popup, list-to-map selection for Beacon Hill Hotel and Bistro, and invalid ZIP feedback.
 
-## Remaining limitations and next task
+## Remaining work
 
-The supplied data are installed. The Part 1 checkpoint is `82d43ec`. Next, capture one successful search and one no-results search, add those screenshot files to the repository, and push the reviewed checkpoint. Part 2 persistence work is intentionally deferred.
+- Record the Assignment 2 Part 1 demo, add its accessible link to `report.md`, replace the assessed-commit placeholder after committing, and push the branch.
+- Assignment 2 Part 2 shortlist persistence is deliberately out of scope.

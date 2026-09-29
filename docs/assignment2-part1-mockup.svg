@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Wayfarer Live early mockup</title>
+  <desc id="desc">An annotated wireframe of ZIP search, hotel list, and synchronized map.</desc>
+  <style>
+    .page{fill:#f6f8fc}.panel{fill:#fff;stroke:#cbd5e1;stroke-width:2}.text{font-family:Arial,sans-serif;fill:#172236}.muted{font-family:Arial,sans-serif;fill:#64748b}.label{font-family:Arial,sans-serif;fill:#365ca7;font-weight:bold;font-size:15px;letter-spacing:1px}.heading{font-family:Arial,sans-serif;fill:#172236;font-weight:bold}.pin{fill:#2256d7}.selected{fill:#edf3ff;stroke:#2256d7;stroke-width:3}.note{fill:#fff6d9;stroke:#dcae29;stroke-width:2}
+  </style>
+  <rect class="page" width="1200" height="760"/>
+  <text class="label" x="76" y="72">EARLY MOCKUP · ASSIGNMENT 2 PART 1</text>
+  <text class="heading" x="76" y="120" font-size="44">Wayfarer Live</text>
+  <text class="muted" x="76" y="154" font-size="20">Explore provider-listed hotels near a U.S. ZIP code.</text>
+  <rect class="panel" x="76" y="192" width="1048" height="104" rx="14"/>
+  <text class="heading" x="104" y="227" font-size="17">U.S. ZIP code</text>
+  <rect x="104" y="241" width="760" height="40" rx="7" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+  <text class="muted" x="120" y="268" font-size="17">02108</text>
+  <rect x="880" y="241" width="208" height="40" rx="7" fill="#2256d7"/>
+  <text x="935" y="268" font-family="Arial,sans-serif" fill="#fff" font-weight="bold" font-size="16">Search</text>
+  <text class="muted" x="104" y="326" font-size="16">Status: Results near 02108, Boston, MA · Provider results are limited to 20 places within 5 km.</text>
+  <rect class="panel" x="76" y="350" width="458" height="344" rx="14"/>
+  <text class="heading" x="104" y="390" font-size="23">Nearby hotels</text>
+  <rect class="selected" x="100" y="414" width="410" height="72" rx="8"/>
+  <text class="heading" x="120" y="442" font-size="18">Provider hotel name</text>
+  <text class="muted" x="120" y="469" font-size="15">Provider address · Selected</text>
+  <rect x="100" y="500" width="410" height="70" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+  <text class="heading" x="120" y="528" font-size="18">Provider hotel name</text>
+  <text class="muted" x="120" y="555" font-size="15">Address not supplied by provider</text>
+  <rect x="100" y="584" width="410" height="70" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+  <text class="heading" x="120" y="612" font-size="18">Provider hotel name</text>
+  <text class="muted" x="120" y="639" font-size="15">Provider address</text>
+  <rect class="panel" x="556" y="350" width="568" height="344" rx="14"/>
+  <path d="M580 620 C690 500 805 630 910 470 S1080 520 1100 400" fill="none" stroke="#c6d5bf" stroke-width="32"/>
+  <path d="M575 420 L1100 660 M600 650 L1080 390" stroke="#d7dde8" stroke-width="5"/>
+  <circle class="pin" cx="775" cy="520" r="15"/><circle cx="775" cy="520" r="7" fill="#fff"/>
+  <circle class="pin" cx="914" cy="470" r="11"/><circle class="pin" cx="980" cy="575" r="11"/>
+  <rect x="662" y="546" width="230" height="45" rx="6" fill="#fff" stroke="#2256d7" stroke-width="2"/>
+  <text class="heading" x="680" y="574" font-size="15">Same selected hotel</text>
+  <rect class="note" x="775" y="704" width="349" height="36" rx="6"/>
+  <text class="text" x="793" y="728" font-size="15">Map and list share one selection.</text>
+</svg>

@@ -1,23 +1,43 @@
-# Wayfarer Lite — Part 1
+# Wayfarer Lite — Assignment 2, Part 1
 
-Wayfarer Lite is the Part 1 CSV hotel-search application for the Travel Application assignment. It uses a Vue frontend, a FastAPI backend, and the supplied course CSV data.
+Wayfarer Lite is a Vue, FastAPI, and Geoapify application for exploring provider-listed hotel places near a five-digit U.S. ZIP code. The live results appear in a synchronized list and Leaflet map. It is a discovery tool, not a booking system.
 
 ## What it does
 
-- Lets a user enter a hotel name and select **Search**.
-- Displays matching hotels in a table with hotel name, city, state, and nightly rate.
-- Shows a clear message when no hotel name matches.
+- Validates a five-digit U.S. ZIP code, including leading zeros.
+- Resolves that exact U.S. ZIP with Geoapify before searching hotel-category places within 5 km of the returned point.
+- Displays the same provider names, addresses, and coordinates in a selectable list and map.
+- Keeps a selected hotel card and marker synchronized and keyboard reachable.
+- Clearly distinguishes invalid input, unresolved ZIPs, no nearby results, provider failures, and provider rate limits.
+- Does not invent prices, ratings, availability, or booking confirmations.
+
+Geoapify coverage and fields vary. Each search returns at most 20 provider places, so the result list is not an exhaustive hotel inventory.
 
 ## Requirements
 
 - Python 3.11 or later
 - Node.js 20 or later
+- A free Geoapify API key, kept only in local `.env`
+
+## Configure your local API key
+
+Copy the template at the repository root:
+
+```bash
+cp .env.example .env
+```
+
+Open `.env` and replace the placeholder with your own key:
+
+```env
+GEOAPIFY_API_KEY=your-key-here
+```
+
+`.env` is ignored by Git. Never commit it, paste a key into source code, or add it to a report or recording. The Geoapify key is used only by FastAPI; the Vue browser application never receives it.
 
 ## Run locally
 
-Open two terminals from the repository root.
-
-Backend:
+From the repository root, start the backend:
 
 ```bash
 python3 -m venv .venv
@@ -26,7 +46,7 @@ pip install -r backend/requirements.txt
 uvicorn app.main:app --app-dir backend --reload
 ```
 
-Frontend:
+In a second terminal, start the frontend:
 
 ```bash
 cd frontend
@@ -34,13 +54,9 @@ npm install
 npm run dev
 ```
 
-Open the local address printed by Vite, normally `http://127.0.0.1:5173`.
+Open the Vite URL, normally `http://127.0.0.1:5173`.
 
-The API defaults to `http://127.0.0.1:8000`. To use another API address, create `frontend/.env.local` with `VITE_API_BASE_URL=http://127.0.0.1:8000` (substitute your address if needed).
-
-## If another local project is already running
-
-Run both commands from this repository, not from a similarly named copy elsewhere. If ports `8000` or `5173` are occupied, use this matched pair instead:
+If those ports are occupied, use this matching local pair:
 
 ```bash
 uvicorn app.main:app --app-dir backend --port 8020
@@ -51,11 +67,7 @@ cd frontend
 VITE_API_BASE_URL=http://127.0.0.1:8020 npm run dev -- --port 5176
 ```
 
-Then open `http://127.0.0.1:5176`. The frontend and backend port values must match.
-
-## Data
-
-The backend reads `backend/data/hotels.csv` directly on every search. The supplied course file contains eight hotels, including Harbor Lantern Hotel, Maple Square Inn, and Metro Garden Hotel. The remaining supplied CSV files are retained for Part 2.
+Then open `http://127.0.0.1:5176`.
 
 ## Checks
 
@@ -64,4 +76,4 @@ python3 -m unittest discover -s backend/tests -v
 cd frontend && npm run build
 ```
 
-See [the design note](docs/design.md), [selected prompts](prompts/selected-prompts.md), and [current handoff](handoffs/current.md) for project context.
+See [research notes and mockup](docs/assignment2-part1-research.md), [the design note](docs/design.md), [selected prompts](prompts/selected-prompts.md), and [the current handoff](handoffs/current.md).

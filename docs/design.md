@@ -1,13 +1,15 @@
-# Design note — Wayfarer Lite Part 1
+# Design note — Wayfarer Lite Assignment 2, Part 1
 
-## Responsibilities
+## MVC responsibilities
 
-The Vue view owns the visible search text, matching hotel rows, loading state, and no-results feedback. It sends a hotel-name query to FastAPI; it does not read CSV files itself.
+The Vue view owns the ZIP field, loading and outcome states, hotel cards, Leaflet map, and one shared selected provider place ID. A card selection opens and highlights its marker; a marker selection highlights and focuses its card. Vue never reads the API key or calls Geoapify directly.
 
-FastAPI is the request boundary. It validates the hotel-name query, exposes the search endpoint, returns matching hotels, and allows the local Vue development server through CORS.
+FastAPI is the request boundary. `GET /api/live-hotels?zip_code=#####` validates the five-digit input, translates controller outcomes into distinct HTTP responses, and permits only local frontend origins through CORS. The legacy CSV endpoint remains available but is no longer the primary screen.
 
-The Python CSV search controller is the model/controller layer for Part 1. It reads the supplied `hotels.csv` file using UTF-8 BOM-safe decoding and filters hotel names case-insensitively. The returned model contains the hotel ID, name, city, state, and nightly rate.
+`GeoapifyHotelController` is the live-data controller. It reads the backend-only key from local `.env`, resolves the exact requested U.S. ZIP code first, and then requests up to 20 `accommodation.hotel` places in a 5 km circle around that returned point. It maps only provider place IDs, names, formatted addresses, and coordinates into Pydantic models. A provider failure remains a failure rather than becoming an empty result.
 
-## Interface decisions
+## Data and interface decisions
 
-The screen centers one task: search for a hotel. Clear labels, a labeled results table, direct no-results feedback, responsive layout, and visible keyboard focus indicators make the required workflow easy to demonstrate.
+Provider results may be incomplete and may change, so the interface identifies them as limited provider data and makes no claim to show every hotel. It deliberately omits unsupported pricing, rating, availability, and booking language. A missing provider name or address gets a plain, honest label.
+
+Leaflet uses OpenStreetMap tiles with visible attribution. The result list uses native buttons, and marker titles plus keyboard-enabled Leaflet markers preserve keyboard access.
