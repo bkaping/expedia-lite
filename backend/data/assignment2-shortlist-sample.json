@@ -1,0 +1,19 @@
+{
+  "fixture_label": "Assignment 2 Part 2 fixed shortlist verification sample — not a live provider response",
+  "places": [
+    {
+      "provider_place_id": "fixed-geoapify-place-beacon-hill",
+      "name": "Beacon Hill Hotel and Bistro",
+      "address": "25-29 Charles Street, Boston, MA 02114, United States of America",
+      "latitude": 42.35691497314308,
+      "longitude": -71.06965316629987
+    },
+    {
+      "provider_place_id": "fixed-geoapify-place-aka-boston",
+      "name": "Hotel AKA Boston Common",
+      "address": "90 Tremont Street, Boston, MA 02108, United States of America",
+      "latitude": 42.3573301,
+      "longitude": -71.0606926
+    }
+  ]
+}

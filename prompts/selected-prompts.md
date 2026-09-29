@@ -1,4 +1,4 @@
-# Selected prompts — Assignment 2, Part 1
+# Selected prompts — Assignment 2
 
 ## Live search implementation
 
@@ -11,3 +11,15 @@
 ## Revised approach
 
 > After a real Geoapify request failed with Python TLS certificate verification, check the local environment, obtain approval for the smallest reproducible dependency, use its CA bundle in the backend-only request, and repeat the live ZIP verification without logging credentials.
+
+## Persistent shortlist implementation — Part 2
+
+> Extend the existing live provider-place screen with a Save to shortlist action on each current result and a separate saved-list view. Persist only provider place ID, name, address, coordinates, and saved timestamp in SQLite. Prevent duplicate provider IDs at the database layer, preserve the first saved snapshot, and allow an individual remove action after confirmation.
+
+## Repeatable persistence verification — Part 2
+
+> Add a clearly labeled fixed JSON sample that is not live provider data. Use it in focused tests to prove save, duplicate prevention, persistence after reopening SQLite, and removal. Keep the previous mocked live-provider failure coverage so an external service failure cannot be mistaken for an empty successful response.
+
+## Revised interaction approach — Part 2
+
+> Do not rely only on disabling the browser save button to prevent duplicates. Treat the button as a helpful cue, but implement SQLite `INSERT OR IGNORE` with provider place ID as the primary key so repeated API requests cannot create two saved records or overwrite the earlier provider snapshot.
