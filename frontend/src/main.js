@@ -31,6 +31,10 @@ const App = {
     const searchData = ref(null)
     const selectedPlaceId = ref('')
     const mapElement = ref(null)
+    const shortlist = ref([])
+    const shortlistLoading = ref(true)
+    const shortlistMessage = ref('')
+    const shortlistProblem = ref('')
 
     let map
     let centerMarker
@@ -105,6 +109,71 @@ const App = {
       }
     }
 
+    const isSaved = (hotel) =>
+      shortlist.value.some((place) => place.provider_place_id === hotel.provider_place_id)
+
+    const loadShortlist = async () => {
+      shortlistLoading.value = true
+      shortlistProblem.value = ''
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/shortlist`)
+        if (!response.ok) throw new Error(await errorMessage(response))
+        shortlist.value = await response.json()
+      } catch (error) {
+        shortlistProblem.value = error.message || 'The saved shortlist could not be loaded.'
+      } finally {
+        shortlistLoading.value = false
+      }
+    }
+
+    const saveToShortlist = async (hotel) => {
+      shortlistMessage.value = ''
+      shortlistProblem.value = ''
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/shortlist`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            provider_place_id: hotel.provider_place_id,
+            name: hotel.name,
+            address: hotel.address,
+            latitude: hotel.latitude,
+            longitude: hotel.longitude,
+          }),
+        })
+        if (!response.ok) throw new Error(await errorMessage(response))
+        const result = await response.json()
+        if (result.created) shortlist.value = [result.place, ...shortlist.value]
+        shortlistMessage.value = result.created
+          ? `${result.place.name} was saved to your persistent shortlist.`
+          : `${result.place.name} is already in your shortlist.`
+      } catch (error) {
+        shortlistProblem.value = error.message || 'This provider place could not be saved.'
+      }
+    }
+
+    const removeFromShortlist = async (place) => {
+      if (!window.confirm(`Remove ${place.name} from your shortlist?`)) return
+      shortlistMessage.value = ''
+      shortlistProblem.value = ''
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/api/shortlist/${encodeURIComponent(place.provider_place_id)}`,
+          { method: 'DELETE' },
+        )
+        if (!response.ok) throw new Error(await errorMessage(response))
+        shortlist.value = shortlist.value.filter((item) => item.provider_place_id !== place.provider_place_id)
+        shortlistMessage.value = `${place.name} was removed from your shortlist.`
+      } catch (error) {
+        shortlistProblem.value = error.message || 'This saved place could not be removed.'
+      }
+    }
+
+    const formatSavedAt = (timestamp) =>
+      new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(
+        new Date(timestamp),
+      )
+
     const search = async () => {
       const requestedZip = zipCode.value.trim()
       selectedPlaceId.value = ''
@@ -154,16 +223,35 @@ const App = {
         maxZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map)
+      loadShortlist()
     })
 
     onBeforeUnmount(() => map?.remove())
 
-    return { mapElement, search, searchData, searchState, selectHotel, selectedPlaceId, statusMessage, zipCode }
+    return {
+      formatSavedAt,
+      isSaved,
+      loadShortlist,
+      mapElement,
+      removeFromShortlist,
+      saveToShortlist,
+      search,
+      searchData,
+      searchState,
+      selectHotel,
+      selectedPlaceId,
+      shortlist,
+      shortlistLoading,
+      shortlistMessage,
+      shortlistProblem,
+      statusMessage,
+      zipCode,
+    }
   },
   template: `
     <main class="shell">
       <header class="hero">
-        <p class="eyebrow">ASSIGNMENT 2 · PART 1</p>
+        <p class="eyebrow">ASSIGNMENT 2 · PART 2</p>
         <h1>Wayfarer Lite</h1>
         <p class="lede">Explore provider-listed hotels near a U.S. ZIP code.</p>
       </header>
@@ -197,18 +285,22 @@ const App = {
           <p v-else-if="searchState === 'empty'" class="empty-copy">No nearby hotel places were returned for this resolved search center.</p>
           <ol v-else-if="searchData" class="hotel-list">
             <li v-for="hotel in searchData.hotels" :key="hotel.provider_place_id">
-              <button
-                :id="'hotel-' + hotel.provider_place_id"
-                class="hotel-card"
-                :class="{ selected: selectedPlaceId === hotel.provider_place_id }"
-                type="button"
-                :aria-pressed="selectedPlaceId === hotel.provider_place_id"
-                @click="selectHotel(hotel)"
-              >
-                <strong>{{ hotel.name }}</strong>
-                <span>{{ hotel.address }}</span>
-                <small v-if="selectedPlaceId === hotel.provider_place_id">Selected on map</small>
-              </button>
+              <article class="hotel-card" :class="{ selected: selectedPlaceId === hotel.provider_place_id }">
+                <button
+                  :id="'hotel-' + hotel.provider_place_id"
+                  class="hotel-select"
+                  type="button"
+                  :aria-pressed="selectedPlaceId === hotel.provider_place_id"
+                  @click="selectHotel(hotel)"
+                >
+                  <strong>{{ hotel.name }}</strong>
+                  <span>{{ hotel.address }}</span>
+                  <small v-if="selectedPlaceId === hotel.provider_place_id">Selected on map</small>
+                </button>
+                <button class="save-button" :class="{ saved: isSaved(hotel) }" type="button" :disabled="isSaved(hotel)" @click="saveToShortlist(hotel)">
+                  {{ isSaved(hotel) ? 'Saved' : 'Save to shortlist' }}
+                </button>
+              </article>
             </li>
           </ol>
           <p v-if="searchData" class="provider-note">Names, addresses, and map points come from Geoapify. Results may be incomplete or change over time; this app does not show prices, ratings, availability, or booking confirmation.</p>
@@ -218,6 +310,31 @@ const App = {
           <div class="map-label"><span class="center-dot" aria-hidden="true"></span> Search center <span class="hotel-dot" aria-hidden="true">H</span> Hotel place</div>
           <div ref="mapElement" class="map" aria-label="Map of nearby hotel places"></div>
         </div>
+      </section>
+
+      <section class="shortlist-panel" aria-labelledby="shortlist-heading">
+        <div class="shortlist-heading">
+          <div>
+            <p class="eyebrow">PART 2 · SQLITE PERSISTENCE</p>
+            <h2 id="shortlist-heading">Saved shortlist</h2>
+          </div>
+          <button class="quiet-button" type="button" :disabled="shortlistLoading" @click="loadShortlist">Refresh saved places</button>
+        </div>
+        <p class="shortlist-intro">These are saved provider snapshots. They remain recognizable after a browser or backend restart, even if a later live search changes.</p>
+        <p v-if="shortlistMessage" class="shortlist-message success" role="status">{{ shortlistMessage }}</p>
+        <p v-if="shortlistProblem" class="shortlist-message error" role="alert">{{ shortlistProblem }}</p>
+        <p v-if="shortlistLoading" class="shortlist-message">Loading saved places…</p>
+        <p v-else-if="!shortlist.length" class="shortlist-message">No saved places yet. Use “Save to shortlist” on a live provider result.</p>
+        <ol v-else class="shortlist-list">
+          <li v-for="place in shortlist" :key="place.provider_place_id" class="shortlist-card">
+            <div>
+              <h3>{{ place.name }}</h3>
+              <p>{{ place.address }}</p>
+              <small>Provider snapshot saved {{ formatSavedAt(place.saved_at) }}</small>
+            </div>
+            <button class="remove-button" type="button" @click="removeFromShortlist(place)">Remove</button>
+          </li>
+        </ol>
       </section>
     </main>
   `,

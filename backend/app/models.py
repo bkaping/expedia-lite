@@ -81,3 +81,20 @@ class LiveHotelSearchResponse(BaseModel):
     hotels: list[LiveHotel]
     result_limit: int
     radius_meters: int
+
+
+class ShortlistPlaceInput(BaseModel):
+    provider_place_id: str = Field(min_length=1, max_length=600)
+    name: str = Field(min_length=1, max_length=300)
+    address: str = Field(min_length=1, max_length=600)
+    latitude: float = Field(ge=-90, le=90)
+    longitude: float = Field(ge=-180, le=180)
+
+
+class ShortlistedPlace(ShortlistPlaceInput):
+    saved_at: datetime
+
+
+class ShortlistSaveResult(BaseModel):
+    place: ShortlistedPlace
+    created: bool

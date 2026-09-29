@@ -24,6 +24,9 @@ def load_local_environment() -> None:
 
 load_local_environment()
 DATABASE_PATH = Path(os.getenv("WAYFARER_DB_PATH", DATA_DIR / "travel.db"))
+SHORTLIST_DATABASE_PATH = Path(
+    os.getenv("WAYFARER_SHORTLIST_DB_PATH", DATA_DIR / "assignment2_shortlist.db")
+)
 GEOAPIFY_API_KEY = os.getenv("GEOAPIFY_API_KEY", "")
 FRONTEND_ORIGINS = [
     "http://127.0.0.1:5173",

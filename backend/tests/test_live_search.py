@@ -79,6 +79,27 @@ class LiveHotelControllerTests(unittest.TestCase):
         with self.assertRaises(ZipUnresolvedError):
             controller.find_hotels("90210")
 
+    def test_empty_provider_features_remain_a_successful_empty_result(self) -> None:
+        def empty_fetch(url: str, _params: dict[str, str]) -> dict:
+            if url == GEOCODING_URL:
+                return {
+                    "results": [
+                        {
+                            "postcode": "02108",
+                            "country_code": "us",
+                            "city": "Boston",
+                            "state": "Massachusetts",
+                            "lat": 42.357,
+                            "lon": -71.063,
+                        }
+                    ]
+                }
+            return {"features": []}
+
+        response = GeoapifyHotelController(api_key="test-key", fetch_json=empty_fetch).find_hotels("02108")
+
+        self.assertEqual(response.hotels, [])
+
     def test_preserves_provider_failure_instead_of_returning_empty_results(self) -> None:
         def failed_fetch(_url: str, _params: dict[str, str]) -> dict:
             raise ProviderRequestError("Geoapify rate limit reached. Please wait and try again.", 429)
