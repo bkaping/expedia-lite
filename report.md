@@ -3,7 +3,7 @@
 ## Project access and assessed commit
 
 - Repository: [https://github.com/bkaping/expedia-lite](https://github.com/bkaping/expedia-lite)
-- Assessed Part 2 implementation commit: [09461d3](https://github.com/bkaping/expedia-lite/commit/09461d3)
+- Assessed Part 2 implementation commit: [d8c39eb](https://github.com/bkaping/expedia-lite/commit/d8c39eb)
 - Startup instructions: [README.md](README.md). Create root `.env` from [`.env.example`](.env.example), set `GEOAPIFY_API_KEY` locally, and never commit or record that key.
 - Fixed Part 2 verification fixture: [`backend/data/assignment2-shortlist-sample.json`](backend/data/assignment2-shortlist-sample.json). It is labeled fixed sample data, not a live Geoapify response.
 
