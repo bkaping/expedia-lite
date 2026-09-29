@@ -297,8 +297,8 @@ const App = {
                   <span>{{ hotel.address }}</span>
                   <small v-if="selectedPlaceId === hotel.provider_place_id">Selected on map</small>
                 </button>
-                <button class="save-button" :class="{ saved: isSaved(hotel) }" type="button" :disabled="isSaved(hotel)" @click="saveToShortlist(hotel)">
-                  {{ isSaved(hotel) ? 'Saved' : 'Save to shortlist' }}
+                <button class="save-button" :class="{ saved: isSaved(hotel) }" type="button" @click="saveToShortlist(hotel)">
+                  {{ isSaved(hotel) ? 'Already saved — check again' : 'Save to shortlist' }}
                 </button>
               </article>
             </li>
