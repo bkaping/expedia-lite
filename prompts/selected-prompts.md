@@ -1,9 +1,13 @@
-# Selected prompts — Part 1
+# Selected prompts — Assignment 2, Part 1
 
-## Project build
+## Live search implementation
 
-> Update the Part 1 application to match the course demonstration: search the supplied hotel CSV by hotel name and display only matching hotel records in the Vue frontend.
+> Extend the existing Vue and FastAPI hotel project so a traveler enters a five-digit U.S. ZIP code, FastAPI resolves that exact U.S. postcode through Geoapify, and the frontend shows nearby provider hotel places in a synchronized list and Leaflet map. Keep the key backend-only and never invent hotel fields that Geoapify did not return.
 
-## Implementation guardrails
+## Verification and reliability
 
-> Keep the Vue client and FastAPI service separate. Use the supplied CSV headers and IDs exactly, provide clear no-results feedback, and document the manual browser checks needed for submission.
+> Distinguish invalid input, unresolved ZIPs, successful empty results, provider failures, and rate limits in the interface. Add focused controller tests that mock provider responses, including a provider failure that must not be displayed as an empty result.
+
+## Revised approach
+
+> After a real Geoapify request failed with Python TLS certificate verification, check the local environment, obtain approval for the smallest reproducible dependency, use its CA bundle in the backend-only request, and repeat the live ZIP verification without logging credentials.

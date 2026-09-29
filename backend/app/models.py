@@ -59,3 +59,25 @@ class BookingDetail(BaseModel):
     check_in: str
     check_out: str
     room_type: str
+
+
+class LiveSearchCenter(BaseModel):
+    zip_code: str
+    label: str
+    latitude: float
+    longitude: float
+
+
+class LiveHotel(BaseModel):
+    provider_place_id: str
+    name: str
+    address: str
+    latitude: float
+    longitude: float
+
+
+class LiveHotelSearchResponse(BaseModel):
+    center: LiveSearchCenter
+    hotels: list[LiveHotel]
+    result_limit: int
+    radius_meters: int

@@ -1,33 +1,55 @@
-# Wayfarer Lite — Part 1
+# Wayfarer Lite — Assignment 2 Part 1
 
-## Repository and commit
+## Project access
 
-Repository URL: [https://github.com/bkaping/expedia-lite](https://github.com/bkaping/expedia-lite)
-Submitted Part 1 implementation commit: [82d43ec](https://github.com/bkaping/expedia-lite/commit/82d43ec)
+- Repository: [https://github.com/bkaping/expedia-lite](https://github.com/bkaping/expedia-lite)
+- Assessed commit: pending final checked commit
+- Setup: follow the [README](README.md). Create a local root `.env` from [`.env.example`](.env.example) and set `GEOAPIFY_API_KEY`; do not commit, upload, or record the real value.
 
-## Implementation
+## Research notes
 
-Wayfarer Lite provides a hotel-name search flow. The Vue frontend collects the hotel name and presents matching hotels in a labeled table. FastAPI validates and forwards the request to a Python CSV search controller. The controller reads the supplied `hotels.csv` data and returns case-insensitive matching hotel records.
+The [research notes](docs/assignment2-part1-research.md) record sources, observed patterns, weaknesses, and resulting decisions. The design keeps a result list and map visible together, uses an exact U.S. ZIP-resolution step before the 5 km hotel search, and presents provider data without inventing booking details.
 
-## Verification
+## Early mockup
+
+![Early list and map interaction mockup](docs/assignment2-part1-mockup.svg)
+
+The mockup predates the final implementation. The implemented screen preserves its ZIP search, visible status, side-by-side list and map, and shared selection state; it adds explicit provider-limit wording and visible OpenStreetMap attribution.
+
+## Screen-recorded demo video
+
+Pending recording and accessible link. The video will show a real ZIP lookup, synchronized list-to-marker and marker-to-list selection, and invalid-input feedback. It will not display a credential.
+
+## Verification record
 
 | Action | Expected result | Observed result |
 | --- | --- | --- |
-| Search `Harbor` | Harbor Lantern Hotel appears with its city, state, and nightly rate. | Observed in the local browser: Harbor Lantern Hotel, Boston, MA, and $150.00 appeared in the labeled results table. |
-| Search a nonmatching name | A clear no-results message appears. | Observed in the local browser: `No hotels matched “Atlantis”. Try another hotel name.` |
+| Review the changed files in VS Code | MVC roles, local credential handling, research, mockup, and tests are clear. | Completed: Vue owns view state and selection; FastAPI owns the protected request boundary; the controller maps Geoapify data into live-place models. |
+| Live search `02108` on September 29, 2026 | The exact U.S. ZIP resolves before a hotel search within 5 km of that returned coordinate. | Observed: `02108` resolved to Boston, Massachusetts and returned 20 Geoapify hotel places. One provider record lacked a name, so the interface will honestly label it rather than invent one. |
+| Invalid input `123` | Clear invalid-input message; no provider request. | Observed in the browser: the screen displayed “Enter exactly five digits, including a leading zero when your ZIP code has one.” |
+| Provider request failure | Clear service-failure message, not a successful empty list. | Covered by focused controller test using a simulated provider failure. |
+| Select a hotel marker | The matching provider marker opens its popup and identifies that place. | Observed in the browser: a selected marker opened the provider-name/address popup. |
+| Select a list card | The matching map marker and popup identify the same provider place. | Observed in the browser: selecting Beacon Hill Hotel and Bistro highlighted its card and opened its matching popup on the map. |
 
-Screenshots from the manual browser checks:
+The result count is not treated as fixed: live provider coverage can change. The application limits a request to 20 places and does not claim an exhaustive hotel inventory.
 
-![Successful hotel search: Harbor Lantern Hotel](screenshots/part1-hotel-search-success.png)
+## Screenshot evidence
 
-![No-results hotel search: Atlantis](screenshots/part1-hotel-search-no-results.png)
+![Live Geoapify hotel results near ZIP 02108, including the synchronized list and map](screenshots/assignment2-part1/live-results-map.png)
 
-## Project context and next steps
+![A map-marker selection opens the matching provider-place popup](screenshots/assignment2-part1/map-marker-selection.png)
 
-- [README](README.md)
-- [Project guidance](AGENTS.md)
-- [Design note](docs/design.md)
-- [Selected prompts](prompts/selected-prompts.md)
-- [Current handoff](handoffs/current.md)
+![A list selection for Beacon Hill Hotel and Bistro highlights the card and opens the corresponding map popup](screenshots/assignment2-part1/list-map-selection.png)
 
-The supplied course CSV data are installed. Run the two browser checks, add accessible repository-hosted screenshots, replace the Part 1 commit placeholder, and submit this file as `report.md`.
+![Invalid three-digit ZIP input produces clear feedback](screenshots/assignment2-part1/invalid-zip.png)
+
+## AI disclosure and evidence log
+
+- OpenAI Codex (GPT-5) assisted with implementation, tests, documentation, and the local verification workflow.
+- Selected prompt excerpts are in [prompts/selected-prompts.md](prompts/selected-prompts.md); they correspond to the controller, Vue map/list behavior, tests, and reliability decision.
+- Evidence includes the [design note](docs/design.md), [research notes and mockup](docs/assignment2-part1-research.md), [current handoff](handoffs/current.md), and source/test changes in this repository.
+- Revised approach: the first live request failed before reaching Geoapify because the local Python TLS store could not verify the certificate. After CHECK → approval → TAKE ACTION, `certifi` was added to the backend requirements and used only for the trusted CA bundle. The repeated real ZIP lookup succeeded without logging the credential.
+
+## Remaining limits and next step
+
+The implementation is limited to provider-listed hotel places within 5 km and does not make booking or inventory claims. Record the required live browser demo, add its accessible link above, record the final commit hash, and upload this file as `report.md` to the Assignment 2 Part 1 submission page.
