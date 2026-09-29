@@ -1,55 +1,57 @@
-# Wayfarer Lite — Assignment 2 Part 1
+# Wayfarer Lite — Assignment 2 Part 2
 
-## Project access
+## Project access and assessed commit
 
 - Repository: [https://github.com/bkaping/expedia-lite](https://github.com/bkaping/expedia-lite)
-- Assessed implementation commit: [71a9add](https://github.com/bkaping/expedia-lite/commit/71a9add)
-- Setup: follow the [README](README.md). Create a local root `.env` from [`.env.example`](.env.example) and set `GEOAPIFY_API_KEY`; do not commit, upload, or record the real value.
+- Assessed Part 2 implementation commit: [09461d3](https://github.com/bkaping/expedia-lite/commit/09461d3)
+- Startup instructions: [README.md](README.md). Create root `.env` from [`.env.example`](.env.example), set `GEOAPIFY_API_KEY` locally, and never commit or record that key.
+- Fixed Part 2 verification fixture: [`backend/data/assignment2-shortlist-sample.json`](backend/data/assignment2-shortlist-sample.json). It is labeled fixed sample data, not a live Geoapify response.
 
-## Research notes
+## Part 1 foundation
 
-The [research notes](docs/assignment2-part1-research.md) record sources, observed patterns, weaknesses, and resulting decisions. The design keeps a result list and map visible together, uses an exact U.S. ZIP-resolution step before the 5 km hotel search, and presents provider data without inventing booking details.
+Part 1 accepts an exact five-digit U.S. ZIP code, resolves it through Geoapify, and shows nearby `accommodation.hotel` provider places within 5 km in a synchronized Leaflet list and map. It presents only provider names, addresses, and coordinates; it does not claim prices, ratings, availability, or bookings.
 
-## Early mockup
+The preserved [Assignment 2 Part 1 report](reports/assignment2-part1/report.md) includes the four required browser screenshots: live list/map results, marker selection, list-to-map selection, and invalid ZIP feedback. The original submitted report is also available at [commit 79c695c](https://github.com/bkaping/expedia-lite/blob/79c695c/report.md).
 
-![Early list and map interaction mockup](docs/assignment2-part1-mockup.svg)
+## Research and early mockup
 
-The mockup predates the final implementation. The implemented screen preserves its ZIP search, visible status, side-by-side list and map, and shared selection state; it adds explicit provider-limit wording and visible OpenStreetMap attribution.
+- [Part 1 research and mockup](docs/assignment2-part1-research.md)
+- [Part 2 research and early shortlist mockup](docs/assignment2-part2-research.md)
+- [Current MVC/data-structure design note](docs/design.md)
 
-## Screen-recorded demo video
+The Part 2 research compares direct place-saving and separate saved-list patterns, then records the SQLite uniqueness tradeoff. The early mockup shows a save control beside each live result and a separate saved-shortlist area below the list/map interface.
 
-Pending recording and accessible link. The video will show a real ZIP lookup, synchronized list-to-marker and marker-to-list selection, and invalid-input feedback. It will not display a credential.
+![Part 2 early shortlist mockup](docs/assignment2-part2-mockup.svg)
+
+## Part 2 implementation
+
+Vue adds a **Save to shortlist** action to each current live provider result, a persistent **Saved shortlist** view, a refresh action, and a confirmation before removing an item. FastAPI keeps the browser away from the Geoapify key and provides dedicated shortlist endpoints. `ShortlistController` stores provider place ID, provider name, address, latitude, longitude, and timestamp in local SQLite.
+
+Provider place ID is the SQLite primary key. `INSERT OR IGNORE` prevents a duplicate save and preserves the first stored provider snapshot even if a later live response changes its name or address. The generated database `backend/data/assignment2_shortlist.db` is ignored by Git. It deliberately stores no rate, price, room availability, rating, or booking data.
 
 ## Verification record
 
 | Action | Expected result | Observed result |
 | --- | --- | --- |
-| Review the changed files in VS Code | MVC roles, local credential handling, research, mockup, and tests are clear. | Completed: Vue owns view state and selection; FastAPI owns the protected request boundary; the controller maps Geoapify data into live-place models. |
-| Live search `02108` on September 29, 2026 | The exact U.S. ZIP resolves before a hotel search within 5 km of that returned coordinate. | Observed: `02108` resolved to Boston, Massachusetts and returned 20 Geoapify hotel places. One provider record lacked a name, so the interface will honestly label it rather than invent one. |
-| Invalid input `123` | Clear invalid-input message; no provider request. | Observed in the browser: the screen displayed “Enter exactly five digits, including a leading zero when your ZIP code has one.” |
-| Provider request failure | Clear service-failure message, not a successful empty list. | Covered by focused controller test using a simulated provider failure. |
-| Select a hotel marker | The matching provider marker opens its popup and identifies that place. | Observed in the browser: a selected marker opened the provider-name/address popup. |
-| Select a list card | The matching map marker and popup identify the same provider place. | Observed in the browser: selecting Beacon Hill Hotel and Bistro highlighted its card and opened its matching popup on the map. |
+| Run the fixed JSON fixture through a save request | One provider snapshot is stored. | Observed: the initial POST returned `created: true` with Beacon Hill Hotel and Bistro’s fixture name/address. |
+| Repeat the save using the same provider place ID but changed name/address | The database prevents the duplicate and retains the first snapshot. | Observed: the second POST returned `created: false` and still returned the original Beacon Hill Hotel and Bistro snapshot. |
+| Restart FastAPI using the same temporary SQLite file | The saved snapshot remains available after restart. | Observed: `GET /api/shortlist` returned the previously saved provider record after backend restart. |
+| Remove that saved record | The individual record is removed. | Observed: the DELETE endpoint succeeded; a follow-up `GET /api/shortlist` returned `[]`. |
+| Run focused backend tests | CSV search, live-state, duplicate, persistence, and removal tests pass. | Observed: `python3 -m unittest discover -s backend/tests -v` passed all 8 tests. |
+| Build the frontend for production | Vue compiles successfully. | Observed: `npm run build` from `frontend/` completed successfully. |
+| Simulate a provider failure and an empty provider result | Failure stays a failure; a true empty response stays a successful empty result. | Observed: both focused controller tests pass without consuming the live API quota. |
+| Review Part 1 live browser evidence | ZIP input, provider list/map sync, selections, and invalid input are visible. | Observed: all four screenshots are embedded in the preserved Part 1 report linked above. |
 
-The result count is not treated as fixed: live provider coverage can change. The application limits a request to 20 places and does not claim an exhaustive hotel inventory.
+## Demo video (under three minutes)
 
-## Screenshot evidence
+Pending recording. Record a short local browser demo with no credential visible: search `02108`; save one returned hotel; show it in **Saved shortlist**; try saving it again to show the duplicate message; refresh the browser or restart FastAPI and show it remains; then remove it. Add the accessible video link here before submission.
 
-![Live Geoapify hotel results near ZIP 02108, including the synchronized list and map](https://raw.githubusercontent.com/bkaping/expedia-lite/71a9add/screenshots/assignment2-part1/live-results-map.png)
+## AI disclosure and supporting evidence
 
-![A map-marker selection opens the matching provider-place popup](https://raw.githubusercontent.com/bkaping/expedia-lite/71a9add/screenshots/assignment2-part1/map-marker-selection.png)
+- OpenAI Codex (GPT-5) assisted with implementation, tests, documentation, and local verification.
+- The [selected prompts](prompts/selected-prompts.md) include the initial implementation requests, test request, and the revised approach that moved duplicate prevention from a browser-only cue to SQLite `INSERT OR IGNORE`.
+- The [current handoff](handoffs/current.md) summarizes what is checked and what remains for the student-recorded demo.
 
-![A list selection for Beacon Hill Hotel and Bistro highlights the card and opens the corresponding map popup](https://raw.githubusercontent.com/bkaping/expedia-lite/71a9add/screenshots/assignment2-part1/list-map-selection.png)
+## Remaining limitation and next step
 
-![Invalid three-digit ZIP input produces clear feedback](https://raw.githubusercontent.com/bkaping/expedia-lite/71a9add/screenshots/assignment2-part1/invalid-zip.png)
-
-## AI disclosure and evidence log
-
-- OpenAI Codex (GPT-5) assisted with implementation, tests, documentation, and the local verification workflow.
-- Selected prompt excerpts are in [prompts/selected-prompts.md](prompts/selected-prompts.md); they correspond to the controller, Vue map/list behavior, tests, and reliability decision.
-- Evidence includes the [design note](docs/design.md), [research notes and mockup](docs/assignment2-part1-research.md), [current handoff](handoffs/current.md), and source/test changes in this repository.
-- Revised approach: the first live request failed before reaching Geoapify because the local Python TLS store could not verify the certificate. After CHECK → approval → TAKE ACTION, `certifi` was added to the backend requirements and used only for the trusted CA bundle. The repeated real ZIP lookup succeeded without logging the credential.
-
-## Remaining limits and next step
-
-The implementation is limited to provider-listed hotel places within 5 km and does not make booking or inventory claims. Record the required live browser demo, add its accessible link above, and upload this file as `report.md` to the Assignment 2 Part 1 submission page.
+The shortlist is local to this application’s SQLite database and saves provider snapshots, not bookings. Record the required video, paste its accessible link above, then upload this `report.md` from the repository root to the Assignment 2 Part 2 submission page.
