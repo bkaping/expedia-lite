@@ -35,6 +35,10 @@ const App = {
     const shortlistLoading = ref(true)
     const shortlistMessage = ref('')
     const shortlistProblem = ref('')
+    const assistantQuestion = ref('')
+    const assistantLoading = ref(false)
+    const assistantResult = ref(null)
+    const assistantProblem = ref('')
 
     let map
     let centerMarker
@@ -109,16 +113,25 @@ const App = {
       }
     }
 
-    const isSaved = (hotel) =>
-      shortlist.value.some((place) => place.provider_place_id === hotel.provider_place_id)
+    const savedEntryFor = (hotel) =>
+      shortlist.value.find((place) => place.provider_place_id === hotel.provider_place_id)
+
+    const isSaved = (hotel) => Boolean(savedEntryFor(hotel))
+
+    const formatCurrency = (amount) =>
+      new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
 
     const loadShortlist = async () => {
       shortlistLoading.value = true
+      shortlistMessage.value = ''
       shortlistProblem.value = ''
       try {
         const response = await fetch(`${API_BASE_URL}/api/shortlist`)
         if (!response.ok) throw new Error(await errorMessage(response))
         shortlist.value = await response.json()
+        shortlistMessage.value = shortlist.value.length
+          ? `Read ${shortlist.value.length} saved hotel${shortlist.value.length === 1 ? '' : 's'} from the local SQLite database.`
+          : 'Read the local SQLite database. No hotels are saved yet.'
       } catch (error) {
         shortlistProblem.value = error.message || 'The saved shortlist could not be loaded.'
       } finally {
@@ -145,8 +158,8 @@ const App = {
         const result = await response.json()
         if (result.created) shortlist.value = [result.place, ...shortlist.value]
         shortlistMessage.value = result.created
-          ? `${result.place.name} was saved to your persistent shortlist.`
-          : `${result.place.name} is already in your shortlist.`
+          ? `${result.place.name} was saved locally with a simulated nightly rate of ${formatCurrency(result.place.simulated_nightly_rate_usd)} and ${result.place.simulated_available_rooms} simulated available room${result.place.simulated_available_rooms === 1 ? '' : 's'}.`
+          : `${result.place.name} is already saved with its original local simulated rate and availability.`
       } catch (error) {
         shortlistProblem.value = error.message || 'This provider place could not be saved.'
       }
@@ -173,6 +186,33 @@ const App = {
       new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(
         new Date(timestamp),
       )
+
+    const formatRecords = (records) => JSON.stringify(records, null, 2)
+
+    const askHotelAssistant = async () => {
+      const question = assistantQuestion.value.trim()
+      assistantProblem.value = ''
+      assistantResult.value = null
+      if (question.length < 2) {
+        assistantProblem.value = 'Enter a hotel question with at least two characters.'
+        return
+      }
+
+      assistantLoading.value = true
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/hotel-assistant`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question }),
+        })
+        if (!response.ok) throw new Error(await errorMessage(response))
+        assistantResult.value = await response.json()
+      } catch (error) {
+        assistantProblem.value = error.message || 'The hotel assistant could not answer that question.'
+      } finally {
+        assistantLoading.value = false
+      }
+    }
 
     const search = async () => {
       const requestedZip = zipCode.value.trim()
@@ -229,6 +269,13 @@ const App = {
     onBeforeUnmount(() => map?.remove())
 
     return {
+      askHotelAssistant,
+      assistantLoading,
+      assistantProblem,
+      assistantQuestion,
+      assistantResult,
+      formatCurrency,
+      formatRecords,
       formatSavedAt,
       isSaved,
       loadShortlist,
@@ -238,6 +285,7 @@ const App = {
       search,
       searchData,
       searchState,
+      savedEntryFor,
       selectHotel,
       selectedPlaceId,
       shortlist,
@@ -297,13 +345,17 @@ const App = {
                   <span>{{ hotel.address }}</span>
                   <small v-if="selectedPlaceId === hotel.provider_place_id">Selected on map</small>
                 </button>
+                <p v-if="savedEntryFor(hotel)" class="simulation-note">
+                  Local simulation after saving: {{ formatCurrency(savedEntryFor(hotel).simulated_nightly_rate_usd) }} nightly · {{ savedEntryFor(hotel).simulated_available_rooms }} room{{ savedEntryFor(hotel).simulated_available_rooms === 1 ? '' : 's' }} available
+                </p>
+                <p v-else class="simulation-note">Save this provider place to assign a local simulated nightly rate and availability.</p>
                 <button class="save-button" :class="{ saved: isSaved(hotel) }" type="button" @click="saveToShortlist(hotel)">
                   {{ isSaved(hotel) ? 'Already saved — check again' : 'Save to shortlist' }}
                 </button>
               </article>
             </li>
           </ol>
-          <p v-if="searchData" class="provider-note">Names, addresses, and map points come from Geoapify. Results may be incomplete or change over time; this app does not show prices, ratings, availability, or booking confirmation.</p>
+          <p v-if="searchData" class="provider-note">Names, addresses, and map points come from Geoapify. Rates and room counts are local simulations shown only after saving; they are not provider prices, availability, or booking confirmation.</p>
         </div>
 
         <div class="map-panel">
@@ -320,7 +372,7 @@ const App = {
           </div>
           <button class="quiet-button" type="button" :disabled="shortlistLoading" @click="loadShortlist">Refresh saved places</button>
         </div>
-        <p class="shortlist-intro">These are saved provider snapshots. They remain recognizable after a browser or backend restart, even if a later live search changes.</p>
+        <p class="shortlist-intro">These are saved provider snapshots with locally generated simulated rates and availability. They remain recognizable after a browser or backend restart, even if a later live search changes.</p>
         <p v-if="shortlistMessage" class="shortlist-message success" role="status">{{ shortlistMessage }}</p>
         <p v-if="shortlistProblem" class="shortlist-message error" role="alert">{{ shortlistProblem }}</p>
         <p v-if="shortlistLoading" class="shortlist-message">Loading saved places…</p>
@@ -330,11 +382,46 @@ const App = {
             <div>
               <h3>{{ place.name }}</h3>
               <p>{{ place.address }}</p>
+              <p class="simulated-offer">Simulated nightly rate: <strong>{{ formatCurrency(place.simulated_nightly_rate_usd) }}</strong> · Simulated availability: <strong>{{ place.simulated_available_rooms }} room{{ place.simulated_available_rooms === 1 ? '' : 's' }}</strong></p>
               <small>Provider snapshot saved {{ formatSavedAt(place.saved_at) }}</small>
             </div>
             <button class="remove-button" type="button" @click="removeFromShortlist(place)">Remove</button>
           </li>
         </ol>
+      </section>
+
+      <section class="assistant-panel" aria-labelledby="assistant-heading">
+        <div>
+          <p class="eyebrow">PART 2 · GROUNDED HOTEL ASSISTANT</p>
+          <h2 id="assistant-heading">Ask your saved hotels</h2>
+        </div>
+        <p class="assistant-intro">Ask about only the hotels in your local SQLite shortlist. The assistant proposes one safe read-only SQL query, retrieves those records, then answers using that evidence. Rates and room counts remain local simulations.</p>
+        <form class="assistant-form" @submit.prevent="askHotelAssistant">
+          <label for="assistant-question">Question about saved hotels</label>
+          <textarea id="assistant-question" v-model="assistantQuestion" maxlength="500" placeholder="Which saved hotel has the lowest simulated nightly rate?" :disabled="assistantLoading"></textarea>
+          <button class="primary" type="submit" :disabled="assistantLoading">{{ assistantLoading ? 'Planning and checking…' : 'Ask assistant' }}</button>
+        </form>
+        <p v-if="assistantProblem" class="assistant-message error" role="alert">{{ assistantProblem }}</p>
+        <p v-else-if="assistantLoading" class="assistant-message" role="status">The backend is requesting a SQL proposal, reading the saved SQLite records, and requesting a grounded answer…</p>
+        <article v-else-if="assistantResult" class="assistant-result" aria-live="polite">
+          <div class="assistant-step">
+            <h3>1. Your question</h3>
+            <p>{{ assistantResult.question }}</p>
+          </div>
+          <div class="assistant-step">
+            <h3>2. LLM-proposed read-only SQL</h3>
+            <pre><code>{{ assistantResult.proposed_sql }}</code></pre>
+          </div>
+          <div class="assistant-step">
+            <h3>3. Retrieved local records</h3>
+            <pre><code>{{ formatRecords(assistantResult.records) }}</code></pre>
+          </div>
+          <div class="assistant-step answer-step">
+            <h3>4. Grounded answer</h3>
+            <p>{{ assistantResult.answer }}</p>
+          </div>
+          <p class="assistant-model">Model reported by provider: {{ assistantResult.model }}</p>
+        </article>
       </section>
     </main>
   `,

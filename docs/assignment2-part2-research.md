@@ -10,7 +10,7 @@ Research date: September 29, 2026.
 
 ## Decisions and tradeoffs
 
-- The shortlist stores only honest external-place fields: provider place ID, name, address, latitude, longitude, and saved timestamp. It deliberately has no nightly-rate column or booking field.
+- The original shortlist stores provider place ID, name, address, latitude, longitude, and saved timestamp. The subsequent local-simulation extension adds a backend-generated simulated nightly rate and available-room count; both are visibly labeled as local simulations and are not Geoapify data. It still has no booking field.
 - The frontend may label a returned place as already saved, but FastAPI and SQLite are the duplicate-prevention authority. A direct repeated POST must still leave one row.
 - Save and removal use normal keyboard-focusable buttons. Removal asks for confirmation because it is destructive; the saved list updates only after the backend confirms deletion.
 - `backend/data/assignment2-shortlist-sample.json` is a labeled fixed verification fixture. It is used for repeatable persistence checks, not presented as a live Geoapify result.

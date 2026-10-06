@@ -23,3 +23,11 @@
 ## Revised interaction approach — Part 2
 
 > Do not rely only on disabling the browser save button to prevent duplicates. Treat the button as a helpful cue, but implement SQLite `INSERT OR IGNORE` with provider place ID as the primary key so repeated API requests cannot create two saved records or overwrite the earlier provider snapshot.
+
+## Local simulation extension
+
+> Extend the saved API-hotel model with a backend-generated, deterministic simulated nightly rate and simulated available-room count. Persist those fields in SQLite, migrate existing local shortlist rows safely, display the values only with explicit “Simulated” wording, and verify that a browser refresh reads the saved values back from the database.
+
+## Grounded RAG hotel assistant — Part 2 revision
+
+> Add a backend-only two-call LLM workflow for questions about saved hotels. First, give the model the exact SQLite schema and require JSON containing one read-only SELECT proposal. Validate and cap that SQL before executing it under a SQLite read-only authorizer. Then send the original question and exact retrieved records to the model again for a concise grounded answer. Return every stage to Vue for review and never expose the provider key to the browser.

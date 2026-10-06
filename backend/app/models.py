@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -92,9 +93,23 @@ class ShortlistPlaceInput(BaseModel):
 
 
 class ShortlistedPlace(ShortlistPlaceInput):
+    simulated_nightly_rate_usd: float = Field(gt=0)
+    simulated_available_rooms: int = Field(ge=1)
     saved_at: datetime
 
 
 class ShortlistSaveResult(BaseModel):
     place: ShortlistedPlace
     created: bool
+
+
+class HotelAssistantRequest(BaseModel):
+    question: str = Field(min_length=2, max_length=500)
+
+
+class HotelAssistantResponse(BaseModel):
+    question: str
+    proposed_sql: str
+    records: list[dict[str, Any]]
+    answer: str
+    model: str

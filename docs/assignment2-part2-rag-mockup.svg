@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Wayfarer Lite grounded hotel assistant early mockup</title>
+  <desc id="desc">Wireframe with a question field and four visible stages: question, proposed SQL, retrieved SQLite records, and grounded answer.</desc>
+  <style>
+    .bg { fill: #f4f7fb; } .panel { fill: #fff; stroke: #dce5f1; stroke-width: 2; } .ink { fill: #172236; font-family: Arial,sans-serif; } .muted { fill: #526176; font-family: Arial,sans-serif; } .tag { fill: #5470b6; font-family: Arial,sans-serif; font-weight: bold; letter-spacing: 2px; } .code { fill: #172236; } .codeText { fill: #eaf0ff; font-family: monospace; } .answer { fill: #eef7f2; stroke: #b9ddc8; stroke-width: 2; }
+  </style>
+  <rect class="bg" width="1200" height="760"/>
+  <text class="tag" x="70" y="72" font-size="15">PART 2 · GROUNDED HOTEL ASSISTANT</text>
+  <text class="ink" x="70" y="120" font-size="38" font-weight="bold">Ask your saved hotels</text>
+  <text class="muted" x="70" y="153" font-size="18">Question → LLM SQL proposal → read-only SQLite records → grounded answer</text>
+  <rect class="panel" x="70" y="185" width="1060" height="94" rx="13"/>
+  <text class="ink" x="94" y="219" font-size="16" font-weight="bold">Question about saved hotels</text>
+  <text class="muted" x="94" y="251" font-size="18">Which saved hotel has the lowest simulated nightly rate?</text>
+  <rect x="935" y="211" width="165" height="46" rx="9" fill="#2358dc"/>
+  <text x="963" y="241" font-family="Arial,sans-serif" font-size="16" font-weight="bold" fill="#fff">Ask assistant</text>
+  <rect class="panel" x="70" y="307" width="510" height="178" rx="13"/>
+  <text class="ink" x="94" y="344" font-size="19" font-weight="bold">1. Your question</text>
+  <text class="muted" x="94" y="381" font-size="17">Which saved hotel has the lowest</text>
+  <text class="muted" x="94" y="407" font-size="17">simulated nightly rate?</text>
+  <text class="ink" x="94" y="451" font-size="19" font-weight="bold">2. LLM-proposed read-only SQL</text>
+  <rect class="code" x="94" y="462" width="462" height="55" rx="7"/>
+  <text class="codeText" x="108" y="487" font-size="13">SELECT name, simulated_nightly_rate_usd</text>
+  <text class="codeText" x="108" y="507" font-size="13">FROM shortlisted_places ORDER BY 2 LIMIT 1</text>
+  <rect class="panel" x="610" y="307" width="520" height="210" rx="13"/>
+  <text class="ink" x="634" y="344" font-size="19" font-weight="bold">3. Retrieved local records</text>
+  <text class="muted" x="634" y="382" font-size="16">Beacon Hill Hotel and Bistro</text>
+  <text class="muted" x="634" y="410" font-size="16">simulated_nightly_rate_usd: 150.00</text>
+  <text class="muted" x="634" y="438" font-size="16">simulated_available_rooms: 3</text>
+  <text class="muted" x="634" y="474" font-size="14">Local SQLite record, not live provider inventory</text>
+  <rect class="answer" x="70" y="550" width="1060" height="150" rx="13"/>
+  <text class="ink" x="94" y="588" font-size="20" font-weight="bold">4. Grounded answer</text>
+  <text class="muted" x="94" y="624" font-size="18">Beacon Hill Hotel and Bistro has the lowest saved local simulated nightly rate.</text>
+  <text class="muted" x="94" y="654" font-size="18">Its rate and room count are simulations, not provider availability or a booking offer.</text>
+  <text class="muted" x="94" y="683" font-size="14">Model reported by provider: openrouter/free</text>
+</svg>

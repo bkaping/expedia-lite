@@ -28,6 +28,8 @@ SHORTLIST_DATABASE_PATH = Path(
     os.getenv("WAYFARER_SHORTLIST_DB_PATH", DATA_DIR / "assignment2_shortlist.db")
 )
 GEOAPIFY_API_KEY = os.getenv("GEOAPIFY_API_KEY", "")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
+OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openrouter/free")
 FRONTEND_ORIGINS = [
     "http://127.0.0.1:5173",
     "http://localhost:5173",
