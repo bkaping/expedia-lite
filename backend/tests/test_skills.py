@@ -70,6 +70,21 @@ class SkillsControllerTests(unittest.TestCase):
         self.assertIsNone(reset.display_name)
         self.assertIsNone(self.store.profile().cue_style)
 
+    def test_optional_fictional_journal_entry_is_saved_locally(self) -> None:
+        saved = self.store.save_journal_entry("I wrote a fictional coursework journal entry.")
+
+        entries = self.store.journal_entries().entries
+
+        self.assertEqual(saved.mode, "saved")
+        self.assertEqual(entries[0].body, "I wrote a fictional coursework journal entry.")
+
+    def test_potentially_urgent_journal_text_is_not_saved(self) -> None:
+        response = self.store.save_journal_entry("fictional scenario: I want to die")
+
+        self.assertEqual(response.mode, "safety_route")
+        self.assertIsNone(response.entry)
+        self.assertEqual(self.store.journal_entries().entries, [])
+
 
 class SkillsCompanionControllerTests(unittest.TestCase):
     def setUp(self) -> None:

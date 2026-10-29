@@ -36,6 +36,10 @@ const App = {
     const profileDraft = ref({ display_name: '', cue_style: '', practice_aim: '' })
     const profileLoading = ref(false)
     const profileStatus = ref('')
+    const journalEntries = ref([])
+    const journalText = ref('')
+    const journalLoading = ref(false)
+    const journalStatus = ref('')
 
     let timerId
     let elapsedMs = 0
@@ -82,6 +86,61 @@ const App = {
         problem.value = error.message || 'Saved history could not be loaded.'
       } finally {
         loadingHistory.value = false
+      }
+    }
+
+    const loadJournal = async () => {
+      journalLoading.value = true
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/journal`)
+        if (!response.ok) throw new Error(await errorMessage(response))
+        journalEntries.value = (await response.json()).entries
+      } catch (error) {
+        problem.value = error.message || 'Saved journal entries could not be loaded.'
+      } finally {
+        journalLoading.value = false
+      }
+    }
+
+    const showJournal = async () => {
+      problem.value = ''
+      journalStatus.value = ''
+      if (currentSession.value?.outcome === 'active') {
+        const stopped = await leavePractice()
+        if (!stopped) return
+      }
+      screen.value = 'journal'
+      await loadJournal()
+    }
+
+    const saveJournal = async () => {
+      const body = journalText.value.trim()
+      journalStatus.value = ''
+      problem.value = ''
+      if (!body) {
+        problem.value = 'Enter a fictional journal entry, or leave this optional page.'
+        return
+      }
+      journalLoading.value = true
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/journal`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ body }),
+        })
+        if (!response.ok) throw new Error(await errorMessage(response))
+        const saved = await response.json()
+        journalText.value = ''
+        journalStatus.value = saved.message
+        if (saved.mode === 'safety_route') {
+          crisisOpen.value = true
+          return
+        }
+        journalEntries.value = [saved.entry, ...journalEntries.value].slice(0, 12)
+      } catch (error) {
+        problem.value = error.message || 'The fictional journal entry could not be saved.'
+      } finally {
+        journalLoading.value = false
       }
     }
 
@@ -308,8 +367,13 @@ const App = {
       goHome,
       hasUsualSkill,
       history,
+      journalEntries,
+      journalLoading,
+      journalStatus,
+      journalText,
       leavePractice,
       loadingHistory,
+      loadJournal,
       openChatbot,
       pauseBreathing,
       phase,
@@ -326,8 +390,10 @@ const App = {
       resumeBreathing,
       screen,
       saveProfile,
+      saveJournal,
       sendReflection,
       showHistory,
+      showJournal,
       showProfile,
       stage,
       startBreathing,
@@ -346,6 +412,7 @@ const App = {
         <nav aria-label="Primary navigation">
           <button :aria-current="screen === 'home' ? 'page' : undefined" type="button" @click="goHome">Practice</button>
           <button :aria-current="screen === 'profile' ? 'page' : undefined" type="button" @click="showProfile">My profile</button>
+          <button :aria-current="screen === 'journal' ? 'page' : undefined" type="button" @click="showJournal">Journal</button>
           <button :aria-current="screen === 'history' ? 'page' : undefined" type="button" @click="showHistory">Saved history</button>
         </nav>
       </header>
@@ -441,6 +508,27 @@ const App = {
         <section class="profile-context" aria-labelledby="usage-heading">
           <h2 id="usage-heading">What the app adapts</h2>
           <p>It changes the greeting and cue explanation from your saved choices. It may offer your latest completed skill as an optional repeat shortcut. The coursework chatbot receives only your explicit profile choices and the count of completed practices—not a diagnosis, score, or inferred emotional state.</p>
+        </section>
+      </section>
+
+      <section v-else-if="screen === 'journal'" class="journal-view" aria-labelledby="journal-heading">
+        <p class="eyebrow">OPTIONAL LOCAL JOURNAL</p>
+        <h1 id="journal-heading">Write a fictional note.</h1>
+        <p class="lede">This optional journal is for fictional coursework entries only. It saves locally in SQLite and is never sent to the chatbot or model.</p>
+        <p v-if="problem" class="notice problem" role="alert">{{ problem }}</p>
+        <p v-if="journalStatus" class="notice" :class="{ warning: journalStatus.startsWith('This fictional') }" role="status">{{ journalStatus }}</p>
+        <form class="journal-card" @submit.prevent="saveJournal">
+          <label for="journal-entry">Optional fictional journal entry</label>
+          <textarea id="journal-entry" v-model="journalText" maxlength="500" placeholder="Example: In this fictional practice, I noticed the pace of the count."></textarea>
+          <p class="quiet-copy">No entry is required to use the practice. The newest 12 saved fictional entries appear below. Limited potentially urgent wording is not saved or sent anywhere.</p>
+          <button class="primary" type="submit" :disabled="journalLoading">{{ journalLoading ? 'Saving…' : 'Save fictional entry' }}</button>
+        </form>
+        <section class="journal-entries" aria-labelledby="journal-entries-heading">
+          <h2 id="journal-entries-heading">Saved fictional entries</h2>
+          <p v-if="!journalEntries.length" class="empty-copy">No fictional journal entries are saved yet.</p>
+          <ol v-else class="message-list">
+            <li v-for="entry in journalEntries" :key="entry.id"><article class="message-card journal-entry"><strong>{{ formatDate(entry.created_at) }}</strong><p>{{ entry.body }}</p></article></li>
+          </ol>
         </section>
       </section>
 

@@ -11,6 +11,9 @@ from .models import (
     CompanionResponse,
     FinishSkillSessionRequest,
     HistoryResponse,
+    JournalEntryCreateRequest,
+    JournalEntrySaveResponse,
+    JournalHistoryResponse,
     SkillSession,
     StartSkillSessionRequest,
     UserProfile,
@@ -78,6 +81,16 @@ def update_profile(payload: UserProfileUpdateRequest) -> UserProfile:
 @app.delete("/api/profile", response_model=UserProfile)
 def clear_profile() -> UserProfile:
     return skills_controller.clear_profile()
+
+
+@app.get("/api/journal", response_model=JournalHistoryResponse)
+def get_journal_entries() -> JournalHistoryResponse:
+    return skills_controller.journal_entries()
+
+
+@app.post("/api/journal", response_model=JournalEntrySaveResponse)
+def save_journal_entry(payload: JournalEntryCreateRequest) -> JournalEntrySaveResponse:
+    return skills_controller.save_journal_entry(payload.body)
 
 
 @app.post("/api/conversations", response_model=CompanionResponse)

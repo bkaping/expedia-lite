@@ -153,6 +153,26 @@ class ConversationMessage(BaseModel):
     created_at: datetime
 
 
+class JournalEntry(BaseModel):
+    id: int
+    body: str
+    created_at: datetime
+
+
+class JournalEntryCreateRequest(BaseModel):
+    body: str = Field(min_length=1, max_length=500, pattern=r"\S")
+
+
+class JournalEntrySaveResponse(BaseModel):
+    mode: Literal["saved", "safety_route"]
+    message: str
+    entry: JournalEntry | None = None
+
+
+class JournalHistoryResponse(BaseModel):
+    entries: list[JournalEntry]
+
+
 class UserProfile(BaseModel):
     """A small, optional local profile for the coursework prototype.
 

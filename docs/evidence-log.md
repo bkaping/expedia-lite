@@ -17,5 +17,6 @@
 | 2026-10-29 | Profile/chatbot implementation checks | 17 backend tests passed and the Vue production build passed after adding the optional local profile, reset path, and explicit profile/history chatbot context. An isolated browser check saved fictional profile `Avery`, then visibly changed the home greeting, cue explanation, and aim. |
 | 2026-10-29 | Persistent chatbot UI check | Isolated browser check confirmed the top-right Coursework chatbot control opened its bounded, non-therapeutic panel and honestly required a completed fictional practice before sending a message. |
 | 2026-10-29 | Scripted tired-message check | Added a local response for exact fictional `I am tired`; automated test confirmed it returns the non-directive script and makes zero model calls. The full backend suite now has 18 passing tests. |
+| 2026-10-29 | Local journal check | Added two focused journal tests and rechecked the full 20-test suite plus production build. In an isolated browser check, a fictional entry saved locally and appeared immediately in the Journal list. |
 
 This is a redacted record. It contains no credential, real distress content, participant information, or full chat transcript.

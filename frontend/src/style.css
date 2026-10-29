@@ -29,8 +29,8 @@ nav button[aria-current="page"] { border-color: #427366; color: #26332e; font-we
 h1 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(2.7rem, 8vw, 5.2rem); font-weight: 500; letter-spacing: -.065em; line-height: .94; margin-bottom: 19px; }
 h2 { font-family: Georgia, "Times New Roman", serif; font-size: 1.65rem; font-weight: 500; letter-spacing: -.04em; line-height: 1.08; margin-bottom: 12px; }
 .lede { color: #536159; font-size: 1.08rem; line-height: 1.6; max-width: 650px; }
-.home-view, .practice-view, .profile-view, .history-view { animation: arrive .28s ease-out both; }
-.practice-card, .adaptation-card, .exercise-card, .profile-card, .profile-context, .history-card, .message-card { background: #fffdfa; border: 1px solid #d8d7cc; border-radius: 16px; }
+.home-view, .practice-view, .profile-view, .journal-view, .history-view { animation: arrive .28s ease-out both; }
+.practice-card, .adaptation-card, .exercise-card, .profile-card, .profile-context, .journal-card, .journal-entries, .history-card, .message-card { background: #fffdfa; border: 1px solid #d8d7cc; border-radius: 16px; }
 .adaptation-card { align-items: flex-start; display: flex; gap: 24px; justify-content: space-between; margin-top: 29px; max-width: 650px; padding: 22px 24px; }
 .adaptation-card h2 { font-size: 1.3rem; }
 .adaptation-card p:not(.eyebrow):not(.quiet-copy) { color: #536159; line-height: 1.5; margin-bottom: 9px; }
@@ -80,6 +80,14 @@ textarea { background: #fff; border: 1px solid #aebbb4; border-radius: 8px; colo
 .profile-context { margin-top: 20px; max-width: 640px; padding: 22px 24px; }
 .profile-context h2 { font-size: 1.35rem; }
 .profile-context p { color: #536159; line-height: 1.58; margin-bottom: 0; }
+
+.journal-view { max-width: 680px; }
+.journal-card { display: grid; gap: 11px; margin-top: 31px; padding: clamp(23px, 5vw, 35px); }
+.journal-card label { color: #394941; font-weight: 750; line-height: 1.35; }
+.journal-card .primary { justify-self: start; }
+.journal-entries { margin-top: 22px; padding: 24px; }
+.journal-entries h2 { font-size: 1.35rem; }
+.journal-entry strong { color: #66736c; font-size: .78rem; letter-spacing: 0; text-transform: none; }
 
 .history-view { max-width: 680px; }
 .refresh-button { margin: 5px 0 29px; }

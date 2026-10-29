@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import sqlite3
 import uuid
 from contextlib import contextmanager
@@ -10,11 +11,20 @@ from .config import SKILLS_DATABASE_PATH
 from .models import (
     ConversationMessage,
     HistoryResponse,
+    JournalEntry,
+    JournalEntrySaveResponse,
+    JournalHistoryResponse,
     SessionSource,
     SkillId,
     SkillSession,
     UserProfile,
     UserProfileUpdateRequest,
+)
+
+
+POTENTIAL_CRISIS_PATTERN = re.compile(
+    r"\b(suicid(?:e|al)?|kill myself|end my life|self[ -]?harm|hurt myself|want to die|overdose)\b",
+    re.IGNORECASE,
 )
 
 
@@ -81,10 +91,22 @@ class SkillsController:
                 """
             )
             connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS journal_entries (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    body TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                )
+                """
+            )
+            connection.execute(
                 "CREATE INDEX IF NOT EXISTS session_history_order ON skill_sessions(started_at DESC)"
             )
             connection.execute(
                 "CREATE INDEX IF NOT EXISTS conversation_history_order ON conversation_messages(created_at DESC)"
+            )
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS journal_history_order ON journal_entries(created_at DESC)"
             )
 
     def profile(self) -> UserProfile:
@@ -123,6 +145,35 @@ class SkillsController:
                 "SELECT COUNT(*) AS count FROM skill_sessions WHERE outcome = 'completed'"
             ).fetchone()
         return int(row["count"])
+
+    def journal_entries(self) -> JournalHistoryResponse:
+        with self.connection() as connection:
+            rows = connection.execute(
+                "SELECT * FROM journal_entries ORDER BY created_at DESC LIMIT 12"
+            ).fetchall()
+        return JournalHistoryResponse(entries=[self._journal_entry_from_row(row) for row in rows])
+
+    def save_journal_entry(self, body: str) -> JournalEntrySaveResponse:
+        cleaned_body = body.strip()
+        if POTENTIAL_CRISIS_PATTERN.search(cleaned_body):
+            return JournalEntrySaveResponse(
+                mode="safety_route",
+                message="This fictional journal entry was not saved. Crisis support remains available in the fixed button.",
+            )
+
+        created_at = datetime.now(UTC)
+        with self.connection() as connection:
+            cursor = connection.execute(
+                "INSERT INTO journal_entries (body, created_at) VALUES (?, ?)",
+                (cleaned_body, created_at.isoformat()),
+            )
+            row = connection.execute(
+                "SELECT * FROM journal_entries WHERE id = ?", (cursor.lastrowid,)
+            ).fetchone()
+        entry = self._journal_entry_from_row(row)
+        return JournalEntrySaveResponse(
+            mode="saved", message="Fictional journal entry saved locally.", entry=entry
+        )
 
     def start_session(self, skill_id: SkillId, source: SessionSource) -> SkillSession:
         session_id = str(uuid.uuid4())
@@ -225,6 +276,12 @@ class SkillsController:
             body=row["body"],
             model=row["model"],
             created_at=datetime.fromisoformat(row["created_at"]),
+        )
+
+    @staticmethod
+    def _journal_entry_from_row(row: sqlite3.Row) -> JournalEntry:
+        return JournalEntry(
+            id=row["id"], body=row["body"], created_at=datetime.fromisoformat(row["created_at"])
         )
 
     @staticmethod

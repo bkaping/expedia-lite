@@ -8,6 +8,7 @@ Stillpoint is a localhost-only coursework prototype for **fictional scenarios on
 - A clear preparation screen, pause control, and consequence-free leave route; stopped sessions are saved with their active time.
 - A browser-local **Crisis support** panel visible on every screen. It contains current U.S. 988 call, text, and chat links and remains available if FastAPI or the model fails.
 - SQLite persistence for recent session records, an optional local profile, and explicit optional fictional chatbot messages.
+- An optional **Journal** page saves up to 500-character fictional entries locally in SQLite. Journal text is never sent to the chatbot or model; limited potentially urgent wording is not saved.
 - An optional profile holds only a display name, cue-style choice, and practice-aim choice. It changes the greeting and cue explanation; it can be edited or reset without completing a practice.
 - A persistent **Coursework chatbot** control opens a bounded chatbot panel. It permits a message only after a completed practice and receives only the fictional message, explicit profile choices, and completed-practice count. It cannot set skill steps, timing, exits, persistence, or crisis access; potentially urgent text is not sent to the model or stored verbatim.
 - The exact fictional message `I am tired` receives a local scripted, non-directive reply and is not sent to the model. It does not make a sleep or medical recommendation.
@@ -45,7 +46,7 @@ python3 -m unittest discover -s backend/tests -v
 cd frontend && npm run build
 ```
 
-The current checkout was rechecked on October 29, 2026: 18 tests passed and the production build passed. Earlier fictional browser checks completed the 60-second practice, received a bounded live chatbot reply, and displayed both records in history. Browser evidence, model boundaries, timing, failure behavior, and remaining limitations are documented in [the verification record](docs/assignment3-verification.md).
+The current checkout was rechecked on October 29, 2026: 20 tests passed and the production build passed. Earlier fictional browser checks completed the 60-second practice, received a bounded live chatbot reply, and displayed both records in history. The current browser check also saved and displayed a fictional local journal entry. Browser evidence, model boundaries, timing, failure behavior, and remaining limitations are documented in [the verification record](docs/assignment3-verification.md).
 
 ## Documentation
 

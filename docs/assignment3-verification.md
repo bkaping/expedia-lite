@@ -4,7 +4,7 @@ All scenarios below are fictional. Automated checks use a fake model; the one br
 
 ## Automated checks
 
-`python3 -m unittest discover -s backend/tests -v` passed **18 tests** on October 29, 2026. The suite includes the preserved Assignment 2 tests and seven focused Stillpoint tests:
+`python3 -m unittest discover -s backend/tests -v` passed **20 tests** on October 29, 2026. The suite includes the preserved Assignment 2 tests and nine focused Stillpoint tests:
 
 | Check | Expected / observed result |
 | --- | --- |
@@ -14,6 +14,8 @@ All scenarios below are fictional. Automated checks use a fake model; the one br
 | Potential-crisis phrase | Fake model receives zero calls; only a generic system record is stored, not the phrase. |
 | Unsafe model reply | “You should seek therapy” is replaced with the local safety fallback. |
 | Scripted tired message | Exact fictional message `I am tired` receives a local non-directive reply; the fake model receives zero calls. |
+| Fictional journal save | An explicit fictional journal entry persists locally and is returned newest-first. |
+| Journal safety route | Limited potentially urgent wording is not saved and returns the browser to the independent support route. |
 | Optional profile | A display name, cue style, and practice aim persist in SQLite, appear in history data, and can be reset to defaults. |
 | Chatbot context | The fake model receives only explicit profile choices plus the completed-practice count; the response and fictional message persist. |
 
@@ -25,6 +27,7 @@ All scenarios below are fictional. Automated checks use a fake model; the one br
 | --- | --- | --- |
 | Open Crisis support on the home screen | Static support dialog contains call, text, and chat routes without an API request. | Observed. The browser accessibility tree showed the panel and all three links. |
 | Open Coursework chatbot before completion | Persistent button opens a clear scope/availability panel; it does not imply that a message can be sent before a completed practice. | Observed on October 29 after the persistent control was added. |
+| Save a fictional journal entry | The entry saves locally, clears the text area, confirms saving, and appears in the saved-entry list. | Observed on October 29 with “I wrote a fictional coursework journal entry.” |
 | Choose breathing, then leave before beginning | No explanation or confirmation; saved `stopped` session with 0 active seconds. | Observed. The finish screen said “You chose to stop. Nothing else is required.” |
 | Open Saved history while a practice is active | The current session is first saved as a neutral `stopped` record; no active session is orphaned by navigation. | Observed on October 29. History opened and displayed the newly stopped paced-breathing session. |
 | Open Saved history | The stopped session is readable without a score or diagnosis. | Observed. History showed paced breathing with `Stopped`. |

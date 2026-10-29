@@ -49,3 +49,9 @@ This curated record excludes credentials, personal information, real distress di
 > Add one presentation-ready response for the exact fictional phrase `I am tired`, while preserving the coursework chatbot's non-directive, non-medical limits.
 
 **Decision:** Handle the exact phrase locally before a model request with “Thanks for the fictional note. Rest may be one choice to consider; you can choose what happens next.” Do not prescribe a sleep duration or imply health guidance.
+
+## Local fictional journal
+
+> Add an optional journal that persists explicit fictional entries without expanding what the model receives or requiring an emotional disclosure.
+
+**Decision:** Add a separate SQLite journal table and a Vue Journal page. Store only the voluntarily entered body and timestamp, show the latest 12 entries, never send journal text to the model, and do not save limited potentially urgent wording.

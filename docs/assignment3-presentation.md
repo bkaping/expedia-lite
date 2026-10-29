@@ -19,10 +19,10 @@ All examples are fictional coursework scenarios. Do not describe Stillpoint as t
 
 ## 3. Persona, interaction choices, and accessibility
 
-1. Return to **My profile** and explain exactly what is saved locally in SQLite: the optional display name, cue style, practice aim, update time, sessions, and optional fictional chatbot messages.
+1. Return to **My profile** and explain exactly what is saved locally in SQLite: the optional display name, cue style, practice aim, update time, sessions, and optional fictional chatbot messages. Open **Journal** to show that optional fictional journal entries are saved separately and never sent to the model.
 2. Explain how it updates: **Save profile** overwrites choices; **Reset to defaults** removes them. The saved history can offer—but never force—the latest completed skill as a repeat shortcut.
 3. Demonstrate keyboard use with Tab/Enter, visible focus outlines, native form controls, clear labels, and the browser's reduced-motion setting, which removes the breathing animation while retaining text/count cues.
-4. Explain why this reduces effort: defaults work with no setup; choices are structured rather than emotionally demanding; a message is never required.
+4. Explain why this reduces effort: defaults work with no setup; choices are structured rather than emotionally demanding; a chatbot message or journal entry is never required.
 
 ## 4. Chatbot tone and limits
 
