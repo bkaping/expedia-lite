@@ -43,7 +43,7 @@ python3 -m unittest discover -s backend/tests -v
 cd frontend && npm run build
 ```
 
-The current checkout was rechecked on October 29, 2026: 16 tests passed and the production build passed. Browser evidence, model boundaries, timing, failure behavior, and remaining limitations are documented in [the verification record](docs/assignment3-verification.md).
+The current checkout was rechecked on October 29, 2026: 16 tests passed, the production build passed, and a fictional browser flow completed the 60-second practice, received a bounded live companion reply, and displayed both records in history. Browser evidence, model boundaries, timing, failure behavior, and remaining limitations are documented in [the verification record](docs/assignment3-verification.md).
 
 ## Documentation
 

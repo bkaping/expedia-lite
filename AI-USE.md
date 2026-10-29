@@ -3,7 +3,8 @@
 ## Tools and roles
 
 - **OpenAI Codex (GPT-5)** — assisted with design organization, Vue/FastAPI/SQLite implementation, focused fake-model tests, browser verification, and documentation.
-- **OpenRouter model `dots-studio/dots-3-note-preview:free`** — produced one short acknowledgment for a fictional post-practice note during the recorded Part 3.2 browser check.
+- **OpenRouter model `dots-studio/dots-3-note-preview:free`** — produced one bounded acknowledgment for a fictional post-practice note during the October 15 browser check.
+- **OpenRouter model `recursive/flint-v1.0:free`** — produced one bounded acknowledgment for a fictional post-practice note during the October 29 browser recheck. The configured free model can vary over time.
 - **Human author** — selected scope, reviewed the implementation/evidence, and remains responsible for all submission claims and future evaluation.
 
 ## Evidence and boundaries

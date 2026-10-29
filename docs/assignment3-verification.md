@@ -25,14 +25,14 @@ All scenarios below are fictional. Automated checks use a fake model; the one br
 | Open Saved history while a practice is active | The current session is first saved as a neutral `stopped` record; no active session is orphaned by navigation. | Observed on October 29. History opened and displayed the newly stopped paced-breathing session. |
 | Open Saved history | The stopped session is readable without a score or diagnosis. | Observed. History showed paced breathing with `Stopped`. |
 | Complete a timed practice | Six cycles complete at 60 active seconds. | Observed. Finish screen displayed “Active time recorded: 60 seconds.” |
-| Send an ordinary fictional note | Optional model acknowledgment returns; practice remains saved. | Observed. The model returned `Acknowledged.` for “I followed the fictional count.” |
+| Send an ordinary fictional note | Optional model acknowledgment returns; practice remains saved. | Rechecked on October 29 after a full 60-second browser practice. The configured model returned “Noted. You completed the fictional practice. You can choose what to do next.” Both the fictional note and reply appeared in history. |
 | Run a key-disabled local companion API | No provider call; a clear configuration failure response is returned. | Rechecked on October 29. `POST /api/conversations` returned HTTP 503 with `companion_not_configured`. |
 
 ## Part 3.2 safety checks
 
 1. **Independent crisis route:** The dialog is rendered in Vue and has no FastAPI/model dependency. It was visible while the running app was in both home and practice states.
 2. **User control:** Both the explicit leave route and navigation to Saved history persist a neutral stopped session instead of forcing the 60-second timer or leaving an active record behind.
-3. **Model boundary:** The fake-client tests prove that potential-crisis content is not sent to the model and that out-of-role output becomes a local fallback. The live browser check used only a fictional ordinary note.
+3. **Model boundary:** The fake-client tests prove that potential-crisis content is not sent to the model and that out-of-role output becomes a local fallback. The live browser checks used only fictional ordinary notes, and the reply remained within the application’s short neutral boundary.
 
 ## Limits and Part 3.3 plan
 

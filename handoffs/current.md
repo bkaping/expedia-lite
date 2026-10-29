@@ -13,7 +13,7 @@
 
 - Backend suite: 16 passing tests.
 - Frontend production build: passed.
-- Browser: static support panel, pre-start voluntary exit → `stopped`/0 seconds, history rendering, full 60-second completion, fictional-note model acknowledgment, and active-practice navigation → neutral stopped history record.
+- Browser: static support panel, pre-start voluntary exit → `stopped`/0 seconds, history rendering, full 60-second completion, fictional-note model acknowledgment, and active-practice navigation → neutral stopped history record. The October 29 complete flow showed the session’s active time/source and both fictional note/reply in history.
 - Key-disabled localhost companion API: HTTP 503 `companion_not_configured` without another model call.
 
 ## Remaining for Part 3.3

@@ -298,7 +298,7 @@ const App = {
           <h2 id="sessions-heading">Practice sessions</h2>
           <p v-if="!history.sessions.length" class="empty-copy">No sessions are saved yet.</p>
           <ol v-else class="history-list">
-            <li v-for="session in history.sessions" :key="session.id"><article class="history-card"><div><strong>Paced breathing (4–6)</strong><span>{{ formatDate(session.started_at) }}</span></div><span class="outcome" :class="session.outcome">{{ session.outcome }}</span></article></li>
+            <li v-for="session in history.sessions" :key="session.id"><article class="history-card"><div><strong>Paced breathing (4–6)</strong><span>{{ formatDate(session.started_at) }} · {{ session.active_seconds ?? 0 }} active seconds · {{ session.source === 'usual_skill' ? 'optional repeat' : 'chosen' }}</span></div><span class="outcome" :class="session.outcome">{{ session.outcome }}</span></article></li>
           </ol>
         </section>
         <section class="history-section" aria-labelledby="notes-heading">

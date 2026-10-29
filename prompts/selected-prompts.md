@@ -31,3 +31,9 @@ This curated record excludes credentials, personal information, real distress di
 > If someone leaves an active practice by choosing a top-level navigation action, preserve their control without leaving an unfinished active session in the local history.
 
 **Decision:** Before opening Saved history or returning home, Vue finishes the active session as a neutral `stopped` record. If that save fails, it stays on the current screen and shows the error instead of pretending the exit was saved.
+
+## History review clarity
+
+> Make the saved-history view useful for fictional evaluation without turning it into a score or asking for more disclosure.
+
+**Decision:** Each session card shows the active seconds and whether it was directly chosen or an optional repeat, alongside its neutral outcome and date. Optional notes and companion replies remain in a separate list.

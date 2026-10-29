@@ -41,7 +41,7 @@ The model cannot change the breathing sequence, operate the timer, select a skil
 
 ## Persistent records
 
-`skill_sessions` stores an opaque ID, `paced_breathing`, source (`chosen` or `usual_skill`), outcome (`active`, `completed`, or `stopped`), active seconds, and timestamps. `conversation_messages` stores an explicit optional fictional note, bounded assistant response/model identifier, or generic safety-handling marker. The history view displays the newest 12 sessions and 24 messages. There is no account, score, diagnosis, location, inferred distress level, or stored potential-crisis text.
+`skill_sessions` stores an opaque ID, `paced_breathing`, source (`chosen` or `usual_skill`), outcome (`active`, `completed`, or `stopped`), active seconds, and timestamps. `conversation_messages` stores an explicit optional fictional note, bounded assistant response/model identifier, or generic safety-handling marker. The history view displays the newest 12 sessions with their active time and source, plus 24 messages. There is no account, score, diagnosis, location, inferred distress level, or stored potential-crisis text.
 
 ## Observed timing and scope change
 
