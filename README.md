@@ -1,4 +1,4 @@
-# Stillpoint — Assignment 3.2 Mental Health Skills Prototype
+# Stillpoint — Assignment 3 Mental Health Skills Prototype
 
 Stillpoint is a localhost-only coursework prototype for **fictional scenarios only**. It is not therapy, diagnosis, crisis care, monitoring, or a service anyone should rely on during distress.
 
@@ -7,8 +7,9 @@ Stillpoint is a localhost-only coursework prototype for **fictional scenarios on
 - One complete study-provided skill: paced breathing, six 4-second inhale / 6-second exhale cycles (60 active seconds).
 - A clear preparation screen, pause control, and consequence-free leave route; stopped sessions are saved with their active time.
 - A browser-local **Crisis support** panel visible on every screen. It contains current U.S. 988 call, text, and chat links and remains available if FastAPI or the model fails.
-- SQLite persistence for recent session records and explicit optional fictional companion notes.
-- A backend-only, optional model acknowledgment after a completed session. It cannot set skill steps, timing, exits, persistence, or crisis access; potentially urgent text is not sent to the model or stored verbatim.
+- SQLite persistence for recent session records, an optional local profile, and explicit optional fictional chatbot messages.
+- An optional profile holds only a display name, cue-style choice, and practice-aim choice. It changes the greeting and cue explanation; it can be edited or reset without completing a practice.
+- A backend-only, optional model chatbot is available after a completed practice. It receives only the fictional message, explicit profile choices, and completed-practice count. It cannot set skill steps, timing, exits, persistence, or crisis access; potentially urgent text is not sent to the model or stored verbatim.
 - A saved-history view plus an optional “use this practice again” shortcut after a previous completion. No setup or automatic routing occurs.
 
 5–4–3–2–1 grounding remains a documented design direction, not an implemented Part 3.2 claim.
@@ -43,11 +44,12 @@ python3 -m unittest discover -s backend/tests -v
 cd frontend && npm run build
 ```
 
-The current checkout was rechecked on October 29, 2026: 16 tests passed, the production build passed, and a fictional browser flow completed the 60-second practice, received a bounded live companion reply, and displayed both records in history. Browser evidence, model boundaries, timing, failure behavior, and remaining limitations are documented in [the verification record](docs/assignment3-verification.md).
+The current checkout was rechecked on October 29, 2026: 17 tests passed and the production build passed. Earlier fictional browser checks completed the 60-second practice, received a bounded live chatbot reply, and displayed both records in history. Browser evidence, model boundaries, timing, failure behavior, and remaining limitations are documented in [the verification record](docs/assignment3-verification.md).
 
 ## Documentation
 
 - [Part 3.2 design and safety decisions](docs/design.md)
+- [Part 3 presentation walkthrough](docs/assignment3-presentation.md)
 - [Part 3.2 submission report](report.md)
 - [Verification record](docs/assignment3-verification.md)
 - [Selected prompts](prompts/selected-prompts.md)

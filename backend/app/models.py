@@ -120,6 +120,8 @@ class HotelAssistantResponse(BaseModel):
 SkillId = Literal["paced_breathing"]
 SessionSource = Literal["chosen", "usual_skill"]
 SessionOutcome = Literal["active", "completed", "stopped"]
+CueStyle = Literal["brief", "step_by_step"]
+PracticeAim = Literal["one_short_practice", "review_pattern"]
 
 
 class StartSkillSessionRequest(BaseModel):
@@ -151,8 +153,29 @@ class ConversationMessage(BaseModel):
     created_at: datetime
 
 
+class UserProfile(BaseModel):
+    """A small, optional local profile for the coursework prototype.
+
+    Every field is optional. The profile deliberately avoids collecting health,
+    mood, diagnostic, or inferred-state information.
+    """
+
+    display_name: str | None = Field(default=None, max_length=24)
+    cue_style: CueStyle | None = None
+    practice_aim: PracticeAim | None = None
+    updated_at: datetime | None = None
+
+
+class UserProfileUpdateRequest(BaseModel):
+    display_name: str | None = Field(default=None, max_length=24)
+    cue_style: CueStyle | None = None
+    practice_aim: PracticeAim | None = None
+
+
 class HistoryResponse(BaseModel):
     usual_skill_id: SkillId | None = None
+    completed_practice_count: int = Field(ge=0)
+    profile: UserProfile
     sessions: list[SkillSession]
     messages: list[ConversationMessage]
 

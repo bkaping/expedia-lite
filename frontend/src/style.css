@@ -7,7 +7,7 @@
 
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; }
-button, textarea { font: inherit; }
+button, input, textarea { font: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .6; }
 button:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid #467b70; outline-offset: 3px; }
@@ -25,8 +25,12 @@ nav button[aria-current="page"] { border-color: #427366; color: #26332e; font-we
 h1 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(2.7rem, 8vw, 5.2rem); font-weight: 500; letter-spacing: -.065em; line-height: .94; margin-bottom: 19px; }
 h2 { font-family: Georgia, "Times New Roman", serif; font-size: 1.65rem; font-weight: 500; letter-spacing: -.04em; line-height: 1.08; margin-bottom: 12px; }
 .lede { color: #536159; font-size: 1.08rem; line-height: 1.6; max-width: 650px; }
-.home-view, .practice-view, .history-view { animation: arrive .28s ease-out both; }
-.practice-card, .exercise-card, .history-card, .message-card { background: #fffdfa; border: 1px solid #d8d7cc; border-radius: 16px; }
+.home-view, .practice-view, .profile-view, .history-view { animation: arrive .28s ease-out both; }
+.practice-card, .adaptation-card, .exercise-card, .profile-card, .profile-context, .history-card, .message-card { background: #fffdfa; border: 1px solid #d8d7cc; border-radius: 16px; }
+.adaptation-card { align-items: flex-start; display: flex; gap: 24px; justify-content: space-between; margin-top: 29px; max-width: 650px; padding: 22px 24px; }
+.adaptation-card h2 { font-size: 1.3rem; }
+.adaptation-card p:not(.eyebrow):not(.quiet-copy) { color: #536159; line-height: 1.5; margin-bottom: 9px; }
+.adaptation-card .quiet-button { flex: 0 0 auto; }
 .practice-card { margin-top: 42px; max-width: 560px; padding: 27px; }
 .practice-card > p:not(.eyebrow) { color: #536159; line-height: 1.55; }
 .usual-copy { background: #edf4ef; border-left: 3px solid #557d70; padding: 10px 12px; }
@@ -60,6 +64,19 @@ h2 { font-family: Georgia, "Times New Roman", serif; font-size: 1.65rem; font-we
 textarea { background: #fff; border: 1px solid #aebbb4; border-radius: 8px; color: #26332e; min-height: 88px; padding: 11px; resize: vertical; width: 100%; }
 .companion-form .quiet-button { justify-self: start; }
 
+.profile-view { max-width: 680px; }
+.profile-card { display: grid; gap: 16px; margin-top: 31px; padding: clamp(23px, 5vw, 35px); }
+.profile-card > label { color: #394941; font-weight: 750; }
+.profile-card > input { background: #fff; border: 1px solid #aebbb4; border-radius: 8px; color: #26332e; min-height: 44px; padding: 9px 11px; width: 100%; }
+.profile-card fieldset { border: 1px solid #d8d7cc; border-radius: 10px; display: grid; gap: 11px; margin: 0; padding: 16px; }
+.profile-card legend { color: #394941; font-weight: 750; padding: 0 5px; }
+.profile-card fieldset label { align-items: center; color: #536159; display: flex; gap: 9px; line-height: 1.35; }
+.profile-card input[type="radio"] { accent-color: #346c5d; block-size: 18px; inline-size: 18px; margin: 0; }
+.profile-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.profile-context { margin-top: 20px; max-width: 640px; padding: 22px 24px; }
+.profile-context h2 { font-size: 1.35rem; }
+.profile-context p { color: #536159; line-height: 1.58; margin-bottom: 0; }
+
 .history-view { max-width: 680px; }
 .refresh-button { margin: 5px 0 29px; }
 .history-section { border-top: 1px solid #d1d1c8; margin-top: 30px; padding-top: 26px; }
@@ -87,4 +104,4 @@ textarea { background: #fff; border: 1px solid #aebbb4; border-radius: 8px; colo
 
 @keyframes arrive { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } }
-@media (max-width: 620px) { .app-shell { padding: 23px 18px 60px; } .site-header { margin-bottom: 62px; } .crisis-button { right: 14px; top: 12px; } .wordmark { font-size: 1.2rem; } nav button { font-size: .86rem; padding-inline: 5px; } .exercise-card { padding: 28px 21px; } .breathing-card { min-height: 440px; } .crisis-modal { padding: 30px 24px; } }
+@media (max-width: 620px) { .app-shell { padding: 23px 18px 60px; } .site-header { align-items: flex-start; margin-bottom: 62px; } .crisis-button { right: 14px; top: 12px; } .wordmark { font-size: 1.2rem; } nav { flex-wrap: wrap; justify-content: flex-end; } nav button { font-size: .86rem; padding-inline: 5px; } .adaptation-card { align-items: stretch; flex-direction: column; } .adaptation-card .quiet-button { align-self: flex-start; } .exercise-card { padding: 28px 21px; } .breathing-card { min-height: 440px; } .crisis-modal { padding: 30px 24px; } }

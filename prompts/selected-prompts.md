@@ -37,3 +37,9 @@ This curated record excludes credentials, personal information, real distress di
 > Make the saved-history view useful for fictional evaluation without turning it into a score or asking for more disclosure.
 
 **Decision:** Each session card shows the active seconds and whether it was directly chosen or an optional repeat, alongside its neutral outcome and date. Optional notes and companion replies remain in a separate list.
+
+## Optional profile and bounded chatbot revision
+
+> Add a demonstrable user profile without collecting emotional, health, or inferred-state data. Make every profile setting optional, editable, and resettable. Let the interface and a bounded post-practice chatbot use only explicit profile choices and neutral usage history; do not change a canonical skill step.
+
+**Decision:** Store only an optional display name, cue-style selection, and practice-aim selection in local SQLite. The home screen adapts its greeting and cue explanation; the latest completed skill remains an optional repeat shortcut. The backend chatbot receives those explicit choices and a completed-practice count only after a completed skill, while the frontend labels its scope and limitations clearly.

@@ -2,6 +2,7 @@ import { computed, createApp, onBeforeUnmount, onMounted, ref } from 'vue'
 import './style.css'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
+const EMPTY_PROFILE = () => ({ display_name: null, cue_style: null, practice_aim: null, updated_at: null })
 const SKILL = {
   id: 'paced_breathing',
   title: 'Paced breathing (4–6)',
@@ -20,7 +21,7 @@ const errorMessage = async (response) => {
 const App = {
   setup() {
     const screen = ref('home')
-    const history = ref({ usual_skill_id: null, sessions: [], messages: [] })
+    const history = ref({ usual_skill_id: null, completed_practice_count: 0, profile: EMPTY_PROFILE(), sessions: [], messages: [] })
     const currentSession = ref(null)
     const stage = ref('ready')
     const loadingHistory = ref(false)
@@ -31,6 +32,9 @@ const App = {
     const reflectionLoading = ref(false)
     const breathElapsed = ref(0)
     const breathRunning = ref(false)
+    const profileDraft = ref({ display_name: '', cue_style: '', practice_aim: '' })
+    const profileLoading = ref(false)
+    const profileStatus = ref('')
 
     let timerId
     let elapsedMs = 0
@@ -44,6 +48,19 @@ const App = {
         : { text: 'Breathe out', count: 10 - second, direction: 'out' }
     })
     const hasUsualSkill = computed(() => history.value.usual_skill_id === SKILL.id)
+    const profile = computed(() => history.value.profile ?? EMPTY_PROFILE())
+    const profileName = computed(() => profile.value.display_name || '')
+    const completedCount = computed(() => history.value.completed_practice_count ?? 0)
+    const cueCopy = computed(() => {
+      if (profile.value.cue_style === 'brief') return 'Your selected cue style is brief: you will see a simple count and the pause/end controls.'
+      if (profile.value.cue_style === 'step_by_step') return 'Your selected cue style is step-by-step: the practice labels every four-count inhale and six-count exhale.'
+      return 'The practice uses a visual count with clear pause and end controls.'
+    })
+    const aimCopy = computed(() => {
+      if (profile.value.practice_aim === 'one_short_practice') return 'Your selected aim is one short practice.'
+      if (profile.value.practice_aim === 'review_pattern') return 'Your selected aim is to review the 4-in / 6-out pattern.'
+      return ''
+    })
 
     const formatDate = (value) =>
       new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(
@@ -60,6 +77,69 @@ const App = {
         problem.value = error.message || 'Saved history could not be loaded.'
       } finally {
         loadingHistory.value = false
+      }
+    }
+
+    const copyProfileToDraft = (savedProfile = profile.value) => {
+      profileDraft.value = {
+        display_name: savedProfile.display_name ?? '',
+        cue_style: savedProfile.cue_style ?? '',
+        practice_aim: savedProfile.practice_aim ?? '',
+      }
+    }
+
+    const showProfile = async () => {
+      problem.value = ''
+      profileStatus.value = ''
+      if (currentSession.value?.outcome === 'active') {
+        const stopped = await leavePractice()
+        if (!stopped) return
+      }
+      copyProfileToDraft()
+      screen.value = 'profile'
+    }
+
+    const saveProfile = async () => {
+      profileLoading.value = true
+      profileStatus.value = ''
+      problem.value = ''
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/profile`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            display_name: profileDraft.value.display_name.trim() || null,
+            cue_style: profileDraft.value.cue_style || null,
+            practice_aim: profileDraft.value.practice_aim || null,
+          }),
+        })
+        if (!response.ok) throw new Error(await errorMessage(response))
+        const savedProfile = await response.json()
+        history.value = { ...history.value, profile: savedProfile }
+        copyProfileToDraft(savedProfile)
+        profileStatus.value = 'Profile saved locally. You can change or reset these choices at any time.'
+      } catch (error) {
+        problem.value = error.message || 'The profile could not be saved.'
+      } finally {
+        profileLoading.value = false
+      }
+    }
+
+    const resetProfile = async () => {
+      profileLoading.value = true
+      profileStatus.value = ''
+      problem.value = ''
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/profile`, { method: 'DELETE' })
+        if (!response.ok) throw new Error(await errorMessage(response))
+        const clearedProfile = await response.json()
+        history.value = { ...history.value, profile: clearedProfile }
+        copyProfileToDraft(clearedProfile)
+        profileStatus.value = 'Profile reset. The standard interface is now shown.'
+      } catch (error) {
+        problem.value = error.message || 'The profile could not be reset.'
+      } finally {
+        profileLoading.value = false
       }
     }
 
@@ -160,7 +240,7 @@ const App = {
       reflectionResult.value = null
       problem.value = ''
       if (!message) {
-        problem.value = 'Enter a short fictional note, or leave this optional step.'
+        problem.value = 'Enter a short fictional message, or leave this optional step.'
         return
       }
       reflectionLoading.value = true
@@ -176,7 +256,7 @@ const App = {
         if (reflectionResult.value.mode === 'safety_route') crisisOpen.value = true
         await loadHistory()
       } catch (error) {
-        problem.value = error.message || 'The optional companion is unavailable. The practice is still saved.'
+        problem.value = error.message || 'The optional coursework chatbot is unavailable. The practice is still saved.'
       } finally {
         reflectionLoading.value = false
       }
@@ -197,10 +277,13 @@ const App = {
 
     return {
       SKILL,
+      aimCopy,
       beginSession,
       breathElapsed,
       breathRunning,
+      completedCount,
       crisisOpen,
+      cueCopy,
       currentSession,
       formatDate,
       goHome,
@@ -211,16 +294,24 @@ const App = {
       pauseBreathing,
       phase,
       problem,
+      profile,
+      profileDraft,
+      profileLoading,
+      profileName,
+      profileStatus,
       reflectionLoading,
       reflectionResult,
       reflectionText,
       remaining,
       resumeBreathing,
       screen,
+      saveProfile,
       sendReflection,
       showHistory,
+      showProfile,
       stage,
       startBreathing,
+      resetProfile,
     }
   },
   template: `
@@ -231,15 +322,26 @@ const App = {
         <button class="wordmark" type="button" @click="goHome">stillpoint</button>
         <nav aria-label="Primary navigation">
           <button :aria-current="screen === 'home' ? 'page' : undefined" type="button" @click="goHome">Practice</button>
+          <button :aria-current="screen === 'profile' ? 'page' : undefined" type="button" @click="showProfile">My profile</button>
           <button :aria-current="screen === 'history' ? 'page' : undefined" type="button" @click="showHistory">Saved history</button>
         </nav>
       </header>
 
       <section v-if="screen === 'home'" class="home-view" aria-labelledby="home-heading">
         <p class="eyebrow">COURSEWORK SKILLS PROTOTYPE</p>
-        <h1 id="home-heading">One small practice.</h1>
+        <h1 id="home-heading">{{ profileName ? 'Welcome, ' + profileName + '.' : 'One small practice.' }}</h1>
         <p class="lede">For fictional class scenarios only. This is not therapy, diagnosis, crisis care, or a service to rely on during distress.</p>
         <p v-if="problem" class="notice problem" role="alert">{{ problem }}</p>
+        <section class="adaptation-card" aria-labelledby="adaptation-heading">
+          <div>
+            <p class="eyebrow">YOUR OPTIONAL SETUP</p>
+            <h2 id="adaptation-heading">The interface follows choices you control.</h2>
+            <p>{{ cueCopy }}</p>
+            <p v-if="aimCopy">{{ aimCopy }}</p>
+            <p v-if="completedCount" class="quiet-copy">Saved history: {{ completedCount }} completed practice{{ completedCount === 1 ? '' : 's' }}. The repeat shortcut below is optional.</p>
+          </div>
+          <button class="quiet-button" type="button" @click="showProfile">{{ profileName || profile.cue_style || profile.practice_aim ? 'Edit profile' : 'Set optional profile' }}</button>
+        </section>
         <section class="practice-card" aria-labelledby="practice-heading">
           <p class="eyebrow">60 SECONDS INTENDED</p>
           <h2 id="practice-heading">{{ SKILL.title }}</h2>
@@ -278,20 +380,51 @@ const App = {
           <h2>{{ currentSession.outcome === 'completed' ? 'This practice is marked complete.' : 'You chose to stop. Nothing else is required.' }}</h2>
           <p class="quiet-copy">Active time recorded: {{ currentSession.active_seconds }} seconds.</p>
           <form v-if="currentSession.outcome === 'completed'" class="companion-form" @submit.prevent="sendReflection">
-            <label for="fictional-note">Optional fictional note for the course-prototype companion</label>
+            <p class="eyebrow">OPTIONAL COURSEWORK CHATBOT</p>
+            <label for="fictional-note">Send a fictional message after this completed practice</label>
             <textarea id="fictional-note" v-model="reflectionText" maxlength="320" placeholder="Example: I followed the fictional count."></textarea>
-            <p class="quiet-copy">The model can only return one bounded acknowledgment. It cannot change this practice or provide therapeutic advice.</p>
-            <button class="quiet-button" type="submit" :disabled="reflectionLoading">{{ reflectionLoading ? 'Sending…' : 'Save note and ask companion' }}</button>
+            <p class="quiet-copy">The chatbot receives this fictional message plus your explicit profile choices and completed-practice count. It can only return one short acknowledgment. It cannot change this practice or provide therapeutic advice.</p>
+            <button class="quiet-button" type="submit" :disabled="reflectionLoading">{{ reflectionLoading ? 'Sending…' : 'Send to coursework chatbot' }}</button>
           </form>
-          <p v-if="reflectionResult" class="notice" :class="{ warning: reflectionResult.mode === 'safety_route' }">{{ reflectionResult.message }}</p>
+          <p v-if="reflectionResult" class="notice" :class="{ warning: reflectionResult.mode === 'safety_route' }" aria-live="polite"><strong>{{ reflectionResult.mode === 'reply' ? 'Coursework chatbot' : 'Safety handling' }}:</strong> {{ reflectionResult.message }}</p>
           <button class="primary" type="button" @click="goHome">Choose a practice</button>
+        </section>
+      </section>
+
+      <section v-else-if="screen === 'profile'" class="profile-view" aria-labelledby="profile-heading">
+        <p class="eyebrow">OPTIONAL LOCAL PROFILE</p>
+        <h1 id="profile-heading">Set the interface you want.</h1>
+        <p class="lede">These are fictional-coursework preferences, not a health assessment. Leave them blank for the standard interface. You can edit or reset them at any time.</p>
+        <p v-if="problem" class="notice problem" role="alert">{{ problem }}</p>
+        <p v-if="profileStatus" class="notice" role="status">{{ profileStatus }}</p>
+        <form class="profile-card" @submit.prevent="saveProfile">
+          <label for="display-name">Optional display name or nickname</label>
+          <input id="display-name" v-model="profileDraft.display_name" maxlength="24" autocomplete="nickname" placeholder="Example: Avery">
+          <fieldset>
+            <legend>Preferred cue style</legend>
+            <label><input v-model="profileDraft.cue_style" type="radio" value=""> Standard interface</label>
+            <label><input v-model="profileDraft.cue_style" type="radio" value="brief"> Brief visual count</label>
+            <label><input v-model="profileDraft.cue_style" type="radio" value="step_by_step"> Step-by-step labels</label>
+          </fieldset>
+          <fieldset>
+            <legend>Optional practice aim</legend>
+            <label><input v-model="profileDraft.practice_aim" type="radio" value=""> No selected aim</label>
+            <label><input v-model="profileDraft.practice_aim" type="radio" value="one_short_practice"> Complete one short practice</label>
+            <label><input v-model="profileDraft.practice_aim" type="radio" value="review_pattern"> Review the 4-in / 6-out pattern</label>
+          </fieldset>
+          <p class="quiet-copy">Saved locally: only this nickname, selected cue style, and selected practice aim. The activity history separately stores neutral timing/outcome records and optional fictional chatbot messages.</p>
+          <div class="profile-actions"><button class="primary" type="submit" :disabled="profileLoading">{{ profileLoading ? 'Saving…' : 'Save profile' }}</button><button class="quiet-button" type="button" :disabled="profileLoading" @click="resetProfile">Reset to defaults</button></div>
+        </form>
+        <section class="profile-context" aria-labelledby="usage-heading">
+          <h2 id="usage-heading">What the app adapts</h2>
+          <p>It changes the greeting and cue explanation from your saved choices. It may offer your latest completed skill as an optional repeat shortcut. The coursework chatbot receives only your explicit profile choices and the count of completed practices—not a diagnosis, score, or inferred emotional state.</p>
         </section>
       </section>
 
       <section v-else class="history-view" aria-labelledby="history-heading">
         <p class="eyebrow">LOCAL SQLITE RECORD</p>
         <h1 id="history-heading">Saved practice history</h1>
-        <p class="lede">This local review shows recent practice sessions and optional fictional notes. It does not score or diagnose you.</p>
+        <p class="lede">This local review shows recent practice sessions and optional fictional chatbot messages. It does not score or diagnose you.</p>
         <button class="quiet-button refresh-button" type="button" :disabled="loadingHistory" @click="showHistory">{{ loadingHistory ? 'Refreshing…' : 'Refresh history' }}</button>
         <p v-if="problem" class="notice problem" role="alert">{{ problem }}</p>
         <section class="history-section" aria-labelledby="sessions-heading">
@@ -302,10 +435,10 @@ const App = {
           </ol>
         </section>
         <section class="history-section" aria-labelledby="notes-heading">
-          <h2 id="notes-heading">Optional companion notes</h2>
-          <p v-if="!history.messages.length" class="empty-copy">No optional notes are saved yet.</p>
+          <h2 id="notes-heading">Optional chatbot messages</h2>
+          <p v-if="!history.messages.length" class="empty-copy">No optional fictional chatbot messages are saved yet.</p>
           <ol v-else class="message-list">
-            <li v-for="message in history.messages" :key="message.id"><article class="message-card" :class="message.role"><strong>{{ message.role === 'assistant' ? 'Companion' : message.role === 'system' ? 'Safety handling' : 'Fictional note' }}</strong><p>{{ message.body }}</p></article></li>
+            <li v-for="message in history.messages" :key="message.id"><article class="message-card" :class="message.role"><strong>{{ message.role === 'assistant' ? 'Coursework chatbot' : message.role === 'system' ? 'Safety handling' : 'Fictional message' }}</strong><p>{{ message.body }}</p></article></li>
           </ol>
         </section>
       </section>

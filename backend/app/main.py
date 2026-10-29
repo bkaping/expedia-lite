@@ -13,6 +13,8 @@ from .models import (
     HistoryResponse,
     SkillSession,
     StartSkillSessionRequest,
+    UserProfile,
+    UserProfileUpdateRequest,
 )
 from .skills import SkillSessionNotFound, SkillsController
 from .skills_companion import AssistantConfigurationError, LlmRequestError, SkillsCompanionController
@@ -33,7 +35,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=FRONTEND_ORIGINS,
     allow_credentials=False,
-    allow_methods=["GET", "POST"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Content-Type"],
 )
 
@@ -61,6 +63,21 @@ def finish_skill_session(session_id: str, payload: FinishSkillSessionRequest) ->
 @app.get("/api/history", response_model=HistoryResponse)
 def get_history() -> HistoryResponse:
     return skills_controller.history()
+
+
+@app.get("/api/profile", response_model=UserProfile)
+def get_profile() -> UserProfile:
+    return skills_controller.profile()
+
+
+@app.put("/api/profile", response_model=UserProfile)
+def update_profile(payload: UserProfileUpdateRequest) -> UserProfile:
+    return skills_controller.update_profile(payload)
+
+
+@app.delete("/api/profile", response_model=UserProfile)
+def clear_profile() -> UserProfile:
+    return skills_controller.clear_profile()
 
 
 @app.post("/api/conversations", response_model=CompanionResponse)

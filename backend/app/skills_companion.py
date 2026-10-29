@@ -46,6 +46,14 @@ class SkillsCompanionController:
             )
 
         self.skills_controller.save_message(session_id, "user", cleaned_message)
+        profile = self.skills_controller.profile()
+        completed_count = self.skills_controller.completed_practice_count()
+        profile_summary = (
+            f"display name: {profile.display_name or 'not provided'}; "
+            f"selected cue style: {profile.cue_style or 'standard'}; "
+            f"selected practice aim: {profile.practice_aim or 'not provided'}; "
+            f"completed paced-breathing sessions: {completed_count}."
+        )
         completion = self.llm_client.complete(
             [
                 {
@@ -54,13 +62,16 @@ class SkillsCompanionController:
                         "You are a narrowly bounded coursework-prototype companion. Return one neutral, plain-text "
                         "acknowledgment of at most 120 characters. Do not diagnose, provide therapy, give medical or "
                         "crisis advice, interpret feelings, or give instructions. Do not alter or explain a skill. "
-                        "Use non-judgmental language and make clear that the person can choose their next action."
+                        "Use non-judgmental language and make clear that the person can choose their next action. "
+                        "Use a display name only when it is provided. Do not claim to know anything beyond the "
+                        "explicit profile choices and usage summary."
                     ),
                 },
                 {
                     "role": "user",
                     "content": (
                         f"Fictional practice session: {session.skill_id}. Outcome: {session.outcome}. "
+                        f"Explicit local profile and usage summary: {profile_summary} "
                         f"Optional fictional note: {cleaned_message!r}."
                     ),
                 },

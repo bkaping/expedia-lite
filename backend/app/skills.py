@@ -7,7 +7,15 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from .config import SKILLS_DATABASE_PATH
-from .models import ConversationMessage, HistoryResponse, SessionSource, SkillId, SkillSession
+from .models import (
+    ConversationMessage,
+    HistoryResponse,
+    SessionSource,
+    SkillId,
+    SkillSession,
+    UserProfile,
+    UserProfileUpdateRequest,
+)
 
 
 class SkillSessionNotFound(LookupError):
@@ -36,6 +44,17 @@ class SkillsController:
 
     def initialize(self) -> None:
         with self.connection() as connection:
+            connection.execute(
+                """
+                CREATE TABLE IF NOT EXISTS user_profile (
+                    singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+                    display_name TEXT,
+                    cue_style TEXT CHECK (cue_style IN ('brief', 'step_by_step') OR cue_style IS NULL),
+                    practice_aim TEXT CHECK (practice_aim IN ('one_short_practice', 'review_pattern') OR practice_aim IS NULL),
+                    updated_at TEXT NOT NULL
+                )
+                """
+            )
             connection.execute(
                 """
                 CREATE TABLE IF NOT EXISTS skill_sessions (
@@ -67,6 +86,43 @@ class SkillsController:
             connection.execute(
                 "CREATE INDEX IF NOT EXISTS conversation_history_order ON conversation_messages(created_at DESC)"
             )
+
+    def profile(self) -> UserProfile:
+        with self.connection() as connection:
+            row = connection.execute("SELECT * FROM user_profile WHERE singleton = 1").fetchone()
+        return self._profile_from_row(row)
+
+    def update_profile(self, payload: UserProfileUpdateRequest) -> UserProfile:
+        display_name = " ".join((payload.display_name or "").split()) or None
+        if display_name is None and payload.cue_style is None and payload.practice_aim is None:
+            return self.clear_profile()
+
+        updated_at = datetime.now(UTC)
+        with self.connection() as connection:
+            connection.execute(
+                """INSERT INTO user_profile (singleton, display_name, cue_style, practice_aim, updated_at)
+                VALUES (1, ?, ?, ?, ?)
+                ON CONFLICT(singleton) DO UPDATE SET
+                    display_name = excluded.display_name,
+                    cue_style = excluded.cue_style,
+                    practice_aim = excluded.practice_aim,
+                    updated_at = excluded.updated_at""",
+                (display_name, payload.cue_style, payload.practice_aim, updated_at.isoformat()),
+            )
+            row = connection.execute("SELECT * FROM user_profile WHERE singleton = 1").fetchone()
+        return self._profile_from_row(row)
+
+    def clear_profile(self) -> UserProfile:
+        with self.connection() as connection:
+            connection.execute("DELETE FROM user_profile WHERE singleton = 1")
+        return UserProfile()
+
+    def completed_practice_count(self) -> int:
+        with self.connection() as connection:
+            row = connection.execute(
+                "SELECT COUNT(*) AS count FROM skill_sessions WHERE outcome = 'completed'"
+            ).fetchone()
+        return int(row["count"])
 
     def start_session(self, skill_id: SkillId, source: SessionSource) -> SkillSession:
         session_id = str(uuid.uuid4())
@@ -136,8 +192,14 @@ class SkillsController:
                 """SELECT skill_id FROM skill_sessions
                 WHERE outcome = 'completed' ORDER BY ended_at DESC LIMIT 1"""
             ).fetchone()
+            completed_row = connection.execute(
+                "SELECT COUNT(*) AS count FROM skill_sessions WHERE outcome = 'completed'"
+            ).fetchone()
+            profile_row = connection.execute("SELECT * FROM user_profile WHERE singleton = 1").fetchone()
         return HistoryResponse(
             usual_skill_id=usual_row["skill_id"] if usual_row else None,
+            completed_practice_count=int(completed_row["count"]),
+            profile=self._profile_from_row(profile_row),
             sessions=[self._session_from_row(row) for row in session_rows],
             messages=[self._message_from_row(row) for row in message_rows],
         )
@@ -163,4 +225,15 @@ class SkillsController:
             body=row["body"],
             model=row["model"],
             created_at=datetime.fromisoformat(row["created_at"]),
+        )
+
+    @staticmethod
+    def _profile_from_row(row: sqlite3.Row | None) -> UserProfile:
+        if row is None:
+            return UserProfile()
+        return UserProfile(
+            display_name=row["display_name"],
+            cue_style=row["cue_style"],
+            practice_aim=row["practice_aim"],
+            updated_at=datetime.fromisoformat(row["updated_at"]),
         )

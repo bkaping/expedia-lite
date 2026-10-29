@@ -10,6 +10,7 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BACKEND_DIR))
 
 from app.rag_chat import LlmCompletion
+from app.models import UserProfileUpdateRequest
 from app.skills import SkillsController
 from app.skills_companion import SkillsCompanionController
 
@@ -53,6 +54,22 @@ class SkillsControllerTests(unittest.TestCase):
         self.assertEqual(history.sessions[0].outcome, "stopped")
         self.assertIsNone(history.usual_skill_id)
 
+    def test_optional_profile_is_saved_editable_and_visible_in_history(self) -> None:
+        saved = self.store.update_profile(
+            UserProfileUpdateRequest(
+                display_name="  Avery  ", cue_style="step_by_step", practice_aim="review_pattern"
+            )
+        )
+
+        history = self.store.history()
+        reset = self.store.clear_profile()
+
+        self.assertEqual(saved.display_name, "Avery")
+        self.assertEqual(history.profile.cue_style, "step_by_step")
+        self.assertEqual(history.profile.practice_aim, "review_pattern")
+        self.assertIsNone(reset.display_name)
+        self.assertIsNone(self.store.profile().cue_style)
+
 
 class SkillsCompanionControllerTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -67,6 +84,11 @@ class SkillsCompanionControllerTests(unittest.TestCase):
 
     def test_fictional_note_and_bounded_response_are_persisted(self) -> None:
         llm = FakeLlmClient()
+        self.store.update_profile(
+            UserProfileUpdateRequest(
+                display_name="Avery", cue_style="brief", practice_aim="one_short_practice"
+            )
+        )
         response = SkillsCompanionController(self.store, llm).respond(
             self.session.id, "I followed the fictional count."
         )
@@ -75,6 +97,9 @@ class SkillsCompanionControllerTests(unittest.TestCase):
         self.assertEqual(response.model, "test/model")
         self.assertEqual(len(llm.calls), 1)
         self.assertIn("paced_breathing", llm.calls[0][1]["content"])
+        self.assertIn("display name: Avery", llm.calls[0][1]["content"])
+        self.assertIn("selected cue style: brief", llm.calls[0][1]["content"])
+        self.assertIn("completed paced-breathing sessions: 1", llm.calls[0][1]["content"])
         self.assertEqual({message.role for message in self.store.history().messages}, {"user", "assistant"})
 
     def test_possible_crisis_text_is_neither_saved_nor_sent_to_model(self) -> None:

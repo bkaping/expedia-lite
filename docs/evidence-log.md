@@ -14,5 +14,6 @@
 | 2026-10-29 | SQLite inspection | Queried only session metadata, not note text. The newest record was a `usual_skill` paced-breathing session with `stopped` outcome and 0 active seconds, matching the browser navigation check. |
 | 2026-10-29 | Key-disabled local API recheck | A completed temporary session received HTTP 503 `companion_not_configured` at the companion endpoint, without a provider call. |
 | 2026-10-29 | Complete configured browser flow | A fictional session completed at 60 active seconds, received the bounded reply “Noted. You completed the fictional practice. You can choose what to do next.”, and displayed the session, note, and reply in history. |
+| 2026-10-29 | Profile/chatbot implementation checks | 17 backend tests passed and the Vue production build passed after adding the optional local profile, reset path, and explicit profile/history chatbot context. An isolated browser check saved fictional profile `Avery`, then visibly changed the home greeting, cue explanation, and aim. |
 
 This is a redacted record. It contains no credential, real distress content, participant information, or full chat transcript.

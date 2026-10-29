@@ -4,7 +4,7 @@ All scenarios below are fictional. Automated checks use a fake model; the one br
 
 ## Automated checks
 
-`python3 -m unittest discover -s backend/tests -v` passed **16 tests** on October 29, 2026. The suite includes the preserved Assignment 2 tests and five Part 3.2 tests:
+`python3 -m unittest discover -s backend/tests -v` passed **17 tests** on October 29, 2026. The suite includes the preserved Assignment 2 tests and six focused Stillpoint tests:
 
 | Check | Expected / observed result |
 | --- | --- |
@@ -13,6 +13,8 @@ All scenarios below are fictional. Automated checks use a fake model; the one br
 | Ordinary fictional note | Fake model receives the completed skill context; user note and bounded reply persist. |
 | Potential-crisis phrase | Fake model receives zero calls; only a generic system record is stored, not the phrase. |
 | Unsafe model reply | “You should seek therapy” is replaced with the local safety fallback. |
+| Optional profile | A display name, cue style, and practice aim persist in SQLite, appear in history data, and can be reset to defaults. |
+| Chatbot context | The fake model receives only explicit profile choices plus the completed-practice count; the response and fictional message persist. |
 
 `npm run build` from `frontend/` passed on October 29, 2026.
 
@@ -27,6 +29,10 @@ All scenarios below are fictional. Automated checks use a fake model; the one br
 | Complete a timed practice | Six cycles complete at 60 active seconds. | Observed. Finish screen displayed “Active time recorded: 60 seconds.” |
 | Send an ordinary fictional note | Optional model acknowledgment returns; practice remains saved. | Rechecked on October 29 after a full 60-second browser practice. The configured model returned “Noted. You completed the fictional practice. You can choose what to do next.” Both the fictional note and reply appeared in history. |
 | Run a key-disabled local companion API | No provider call; a clear configuration failure response is returned. | Rechecked on October 29. `POST /api/conversations` returned HTTP 503 with `companion_not_configured`. |
+
+## Profile and chatbot demonstration evidence
+
+In an isolated local browser check on October 29, the fictional profile `Avery` + `Step-by-step labels` + `Review the 4-in / 6-out pattern` saved successfully. Returning home visibly changed the greeting to “Welcome, Avery,” and displayed both the selected cue explanation and aim. The focused backend test also verifies that **Reset to defaults** removes the profile. For the presentation, complete one fictional practice, send one ordinary fictional chatbot message, and show the bounded reply plus the history record. This browser sequence must not use a real disclosure.
 
 ## Part 3.2 safety checks
 
