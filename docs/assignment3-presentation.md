@@ -26,7 +26,7 @@ All examples are fictional coursework scenarios. Do not describe Stillpoint as t
 
 ## 4. Chatbot tone and limits
 
-1. Complete the fictional practice, then send an ordinary fictional message such as: `I followed the fictional count.`
+1. Point out the persistent **Coursework chatbot** button beside Crisis support. Open it before completion to show its honest availability message, then complete the fictional practice and send: `I followed the fictional count.`
 2. Show the short response and label it a **coursework chatbot**. Explain it receives only the fictional message, explicit profile choices, and completed-practice count.
 3. Describe the tone: brief, neutral, nonjudgmental, and choice-preserving. It does not claim understanding, diagnosis, therapeutic authority, or medical expertise.
 4. Describe the hard limits: it runs only after completion; cannot change the breathing skill, timer, exits, records, or support panel; output over 120 characters or containing prohibited therapeutic/directive terms becomes a local fixed fallback. Limited potential-crisis phrases are neither saved nor sent to the model; this is not a distress detector.

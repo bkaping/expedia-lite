@@ -9,7 +9,7 @@ Stillpoint is a localhost-only coursework prototype for **fictional scenarios on
 - A browser-local **Crisis support** panel visible on every screen. It contains current U.S. 988 call, text, and chat links and remains available if FastAPI or the model fails.
 - SQLite persistence for recent session records, an optional local profile, and explicit optional fictional chatbot messages.
 - An optional profile holds only a display name, cue-style choice, and practice-aim choice. It changes the greeting and cue explanation; it can be edited or reset without completing a practice.
-- A backend-only, optional model chatbot is available after a completed practice. It receives only the fictional message, explicit profile choices, and completed-practice count. It cannot set skill steps, timing, exits, persistence, or crisis access; potentially urgent text is not sent to the model or stored verbatim.
+- A persistent **Coursework chatbot** control opens a bounded chatbot panel. It permits a message only after a completed practice and receives only the fictional message, explicit profile choices, and completed-practice count. It cannot set skill steps, timing, exits, persistence, or crisis access; potentially urgent text is not sent to the model or stored verbatim.
 - A saved-history view plus an optional “use this practice again” shortcut after a previous completion. No setup or automatic routing occurs.
 
 5–4–3–2–1 grounding remains a documented design direction, not an implemented Part 3.2 claim.
@@ -35,7 +35,7 @@ npm run dev
 
 Open the displayed Vite URL. The development server proxies `/api` to FastAPI, so the browser uses same-origin requests in local development.
 
-The skill, SQLite history, and crisis panel work without an API key. The optional model companion needs `OPENROUTER_API_KEY`: copy `.env.example` to root `.env`, add the key, and restart FastAPI. Keep `.env` ignored; the browser never receives this key.
+The skill, SQLite history, support panel, and the chatbot's pre-completion explanation work without an API key. The optional model chatbot needs `OPENROUTER_API_KEY`: copy `.env.example` to root `.env`, add the key, and restart FastAPI. Keep `.env` ignored; the browser never receives this key.
 
 ## Verification
 

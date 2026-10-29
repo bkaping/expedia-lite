@@ -23,6 +23,7 @@ All scenarios below are fictional. Automated checks use a fake model; the one br
 | Scenario | Expected | Observed |
 | --- | --- | --- |
 | Open Crisis support on the home screen | Static support dialog contains call, text, and chat routes without an API request. | Observed. The browser accessibility tree showed the panel and all three links. |
+| Open Coursework chatbot before completion | Persistent button opens a clear scope/availability panel; it does not imply that a message can be sent before a completed practice. | Observed on October 29 after the persistent control was added. |
 | Choose breathing, then leave before beginning | No explanation or confirmation; saved `stopped` session with 0 active seconds. | Observed. The finish screen said “You chose to stop. Nothing else is required.” |
 | Open Saved history while a practice is active | The current session is first saved as a neutral `stopped` record; no active session is orphaned by navigation. | Observed on October 29. History opened and displayed the newly stopped paced-breathing session. |
 | Open Saved history | The stopped session is readable without a score or diagnosis. | Observed. History showed paced breathing with `Stopped`. |

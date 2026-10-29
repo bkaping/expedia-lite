@@ -10,7 +10,7 @@ body { margin: 0; min-width: 320px; }
 button, input, textarea { font: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .6; }
-button:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid #467b70; outline-offset: 3px; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px solid #467b70; outline-offset: 3px; }
 h1, h2, p { margin-top: 0; }
 
 .app-shell { margin: 0 auto; max-width: 760px; min-height: 100vh; padding: 28px 24px 80px; }
@@ -19,8 +19,12 @@ h1, h2, p { margin-top: 0; }
 nav { display: flex; gap: 6px; }
 nav button { background: none; border: 0; border-bottom: 2px solid transparent; color: #58675f; padding: 7px 8px; }
 nav button[aria-current="page"] { border-color: #427366; color: #26332e; font-weight: 700; }
-.crisis-button { background: #fff9f7; border: 1px solid #9a403a; border-radius: 999px; color: #7b302b; font-size: .84rem; font-weight: 750; padding: 9px 14px; position: fixed; right: 22px; top: 20px; z-index: 5; }
+.utility-buttons { display: flex; gap: 8px; position: fixed; right: 22px; top: 20px; z-index: 5; }
+.crisis-button, .chatbot-button { border-radius: 999px; font-size: .84rem; font-weight: 750; padding: 9px 14px; }
+.crisis-button { background: #fff9f7; border: 1px solid #9a403a; color: #7b302b; }
 .crisis-button:hover { background: #fff0ec; }
+.chatbot-button { background: #edf4ef; border: 1px solid #638d80; color: #24574b; }
+.chatbot-button:hover { background: #dcebe1; }
 .eyebrow { color: #52756b; font-size: .72rem; font-weight: 800; letter-spacing: .12em; margin-bottom: 10px; }
 h1 { font-family: Georgia, "Times New Roman", serif; font-size: clamp(2.7rem, 8vw, 5.2rem); font-weight: 500; letter-spacing: -.065em; line-height: .94; margin-bottom: 19px; }
 h2 { font-family: Georgia, "Times New Roman", serif; font-size: 1.65rem; font-weight: 500; letter-spacing: -.04em; line-height: 1.08; margin-bottom: 12px; }
@@ -95,13 +99,14 @@ textarea { background: #fff; border: 1px solid #aebbb4; border-radius: 8px; colo
 .empty-copy { color: #66736c; line-height: 1.5; }
 
 .modal-backdrop { align-items: center; background: rgb(28 38 33 / 45%); display: flex; inset: 0; justify-content: center; padding: 20px; position: fixed; z-index: 10; }
-.crisis-modal { background: #fffdfa; border-radius: 16px; box-shadow: 0 20px 55px rgb(20 30 25 / 25%); max-width: 530px; padding: 34px; position: relative; }
-.crisis-modal h2 { font-size: 2rem; max-width: 380px; }
-.crisis-modal p { color: #3f4d45; line-height: 1.57; }
+.crisis-modal, .chat-modal { background: #fffdfa; border-radius: 16px; box-shadow: 0 20px 55px rgb(20 30 25 / 25%); max-width: 530px; padding: 34px; position: relative; }
+.crisis-modal h2, .chat-modal h2 { font-size: 2rem; max-width: 380px; }
+.crisis-modal p, .chat-modal p { color: #3f4d45; line-height: 1.57; }
+.chat-form { margin-bottom: 6px; }
 .support-links { display: flex; flex-wrap: wrap; gap: 9px; margin: 18px 0; }
 .support-links a { background: #eef4ef; border: 1px solid #9db5ac; border-radius: 7px; color: #1d5e51; font-weight: 750; padding: 9px 11px; }
 .modal-close { background: none; border: 0; color: #536159; font-size: 1.8rem; line-height: 1; padding: 3px 7px; position: absolute; right: 12px; top: 10px; }
 
 @keyframes arrive { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; scroll-behavior: auto !important; transition-duration: .01ms !important; } }
-@media (max-width: 620px) { .app-shell { padding: 23px 18px 60px; } .site-header { align-items: flex-start; margin-bottom: 62px; } .crisis-button { right: 14px; top: 12px; } .wordmark { font-size: 1.2rem; } nav { flex-wrap: wrap; justify-content: flex-end; } nav button { font-size: .86rem; padding-inline: 5px; } .adaptation-card { align-items: stretch; flex-direction: column; } .adaptation-card .quiet-button { align-self: flex-start; } .exercise-card { padding: 28px 21px; } .breathing-card { min-height: 440px; } .crisis-modal { padding: 30px 24px; } }
+@media (max-width: 620px) { .app-shell { padding: 23px 18px 60px; } .site-header { align-items: flex-start; margin-bottom: 62px; } .utility-buttons { right: 14px; top: 12px; } .crisis-button, .chatbot-button { font-size: .76rem; padding: 8px 10px; } .wordmark { font-size: 1.2rem; } nav { flex-wrap: wrap; justify-content: flex-end; } nav button { font-size: .86rem; padding-inline: 5px; } .adaptation-card { align-items: stretch; flex-direction: column; } .adaptation-card .quiet-button { align-self: flex-start; } .exercise-card { padding: 28px 21px; } .breathing-card { min-height: 440px; } .crisis-modal, .chat-modal { padding: 30px 24px; } }

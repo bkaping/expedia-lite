@@ -27,6 +27,7 @@ const App = {
     const loadingHistory = ref(false)
     const problem = ref('')
     const crisisOpen = ref(false)
+    const chatbotOpen = ref(false)
     const reflectionText = ref('')
     const reflectionResult = ref(null)
     const reflectionLoading = ref(false)
@@ -48,6 +49,10 @@ const App = {
         : { text: 'Breathe out', count: 10 - second, direction: 'out' }
     })
     const hasUsualSkill = computed(() => history.value.usual_skill_id === SKILL.id)
+    const chatSession = computed(() => {
+      if (currentSession.value?.outcome === 'completed') return currentSession.value
+      return history.value.sessions.find((session) => session.outcome === 'completed') ?? null
+    })
     const profile = computed(() => history.value.profile ?? EMPTY_PROFILE())
     const profileName = computed(() => profile.value.display_name || '')
     const completedCount = computed(() => history.value.completed_practice_count ?? 0)
@@ -78,6 +83,13 @@ const App = {
       } finally {
         loadingHistory.value = false
       }
+    }
+
+    const openChatbot = async () => {
+      problem.value = ''
+      reflectionResult.value = null
+      await loadHistory()
+      chatbotOpen.value = true
     }
 
     const copyProfileToDraft = (savedProfile = profile.value) => {
@@ -237,8 +249,13 @@ const App = {
 
     const sendReflection = async () => {
       const message = reflectionText.value.trim()
+      const targetSession = chatSession.value
       reflectionResult.value = null
       problem.value = ''
+      if (!targetSession) {
+        problem.value = 'Complete a fictional practice before using the coursework chatbot.'
+        return
+      }
       if (!message) {
         problem.value = 'Enter a short fictional message, or leave this optional step.'
         return
@@ -248,7 +265,7 @@ const App = {
         const response = await fetch(`${API_BASE_URL}/api/conversations`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ session_id: currentSession.value.id, message }),
+          body: JSON.stringify({ session_id: targetSession.id, message }),
         })
         if (!response.ok) throw new Error(await errorMessage(response))
         reflectionResult.value = await response.json()
@@ -281,6 +298,8 @@ const App = {
       beginSession,
       breathElapsed,
       breathRunning,
+      chatbotOpen,
+      chatSession,
       completedCount,
       crisisOpen,
       cueCopy,
@@ -291,6 +310,7 @@ const App = {
       history,
       leavePractice,
       loadingHistory,
+      openChatbot,
       pauseBreathing,
       phase,
       problem,
@@ -316,7 +336,10 @@ const App = {
   },
   template: `
     <main class="app-shell">
-      <button class="crisis-button" type="button" @click="crisisOpen = true">Crisis support</button>
+      <div class="utility-buttons" aria-label="Prototype tools">
+        <button class="chatbot-button" type="button" @click="openChatbot">Coursework chatbot</button>
+        <button class="crisis-button" type="button" @click="crisisOpen = true">Crisis support</button>
+      </div>
 
       <header class="site-header">
         <button class="wordmark" type="button" @click="goHome">stillpoint</button>
@@ -453,6 +476,29 @@ const App = {
           <div class="support-links"><a href="tel:988?oai_link_source=model_response_hotline">Call 988</a><a href="sms:988?oai_link_source=model_response_hotline">Text 988</a><a href="https://988lifeline.org/chat/?oai_link_source=model_response_hotline" target="_blank" rel="noreferrer">Chat with 988</a></div>
           <p class="quiet-copy">This panel is already in the browser. It does not rely on a model response, detection result, or the API.</p>
           <button class="primary" type="button" @click="crisisOpen = false">Return to prototype</button>
+        </section>
+      </div>
+
+      <div v-if="chatbotOpen" class="modal-backdrop" @click.self="chatbotOpen = false">
+        <section class="chat-modal" role="dialog" aria-modal="true" aria-labelledby="chatbot-heading">
+          <button class="modal-close" type="button" aria-label="Close coursework chatbot" @click="chatbotOpen = false">×</button>
+          <p class="eyebrow">OPTIONAL COURSEWORK CHATBOT</p>
+          <h2 id="chatbot-heading">A brief, bounded response.</h2>
+          <p>This fictional-coursework chatbot is not a therapist and does not diagnose, assess, or direct care.</p>
+          <template v-if="chatSession">
+            <p class="quiet-copy">It can respond because a fictional practice was completed. It receives your explicit profile choices and completed-practice count only.</p>
+            <form class="companion-form chat-form" @submit.prevent="sendReflection">
+              <label for="chatbot-message">Optional fictional message</label>
+              <textarea id="chatbot-message" v-model="reflectionText" maxlength="320" placeholder="Example: I followed the fictional count."></textarea>
+              <p class="quiet-copy">The response is limited to one neutral acknowledgment. It cannot change the practice, timer, saved record, or support panel.</p>
+              <button class="quiet-button" type="submit" :disabled="reflectionLoading">{{ reflectionLoading ? 'Sending…' : 'Send to chatbot' }}</button>
+            </form>
+            <p v-if="reflectionResult" class="notice" :class="{ warning: reflectionResult.mode === 'safety_route' }" aria-live="polite"><strong>{{ reflectionResult.mode === 'reply' ? 'Coursework chatbot' : 'Safety handling' }}:</strong> {{ reflectionResult.message }}</p>
+          </template>
+          <template v-else>
+            <p>Complete the fictional paced-breathing practice first. A message is never required to complete or save a practice.</p>
+            <button class="quiet-button" type="button" @click="chatbotOpen = false">Return to prototype</button>
+          </template>
         </section>
       </div>
     </main>

@@ -6,7 +6,7 @@
 - FastAPI initializes ignored SQLite `backend/data/skills_practice.db` and persists session and optional conversation records.
 - The history screen shows recent sessions/messages. A completed breathing session becomes an optional repeat shortcut.
 - The browser-local Crisis support control is present across home, practice, finish, and history states; it does not call FastAPI or the model.
-- The optional backend-only companion accepts fictional notes after completion, has local output validation/fallback, and redacts limited potential-crisis input before a model call.
+- A persistent Coursework chatbot control appears beside Crisis support. It explains its limits before completion, then accepts fictional messages after a completed practice; it has backend-only output validation/fallback and redacts limited potential-crisis input before a model call.
 - An optional local profile stores only a display name, cue style, and practice aim. The saved choices change the greeting/cue explanation, are editable/resettable, and are sent to the bounded chatbot only with a neutral completed-practice count.
 - Vite proxies `/api` in development; set `VITE_API_PROXY_TARGET` only when using a non-default backend port.
 
