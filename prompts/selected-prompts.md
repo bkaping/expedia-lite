@@ -1,33 +1,33 @@
-# Selected prompts — Assignment 2
+# Selected prompts — Assignment 3.2
 
-## Live search implementation
+This curated record excludes credentials, personal information, real distress disclosures, and full chat history.
 
-> Extend the existing Vue and FastAPI hotel project so a traveler enters a five-digit U.S. ZIP code, FastAPI resolves that exact U.S. postcode through Geoapify, and the frontend shows nearby provider hotel places in a synchronized list and Leaflet map. Keep the key backend-only and never invent hotel fields that Geoapify did not return.
+## End-to-end skill scope
 
-## Verification and reliability
+> Implement one selected skill through Vue, FastAPI, and SQLite. Keep the canonical 4-in/6-out breathing sequence intact, measure active practice from first instruction through final cycle, keep exits consequence-free, and do not claim that deferred skills are available.
 
-> Distinguish invalid input, unresolved ZIPs, successful empty results, provider failures, and rate limits in the interface. Add focused controller tests that mock provider responses, including a provider failure that must not be displayed as an empty result.
+**Decision:** Implement paced breathing only, six cycles / 60 active seconds. Keep grounding documented as deferred.
 
-## Revised approach
+## Independent safety route
 
-> After a real Geoapify request failed with Python TLS certificate verification, check the local environment, obtain approval for the smallest reproducible dependency, use its CA bundle in the backend-only request, and repeat the live ZIP verification without logging credentials.
+> Keep a clearly labelled support route present in the browser through every state and after a model/API failure. It must not depend on a classifier, prompt, or network call.
 
-## Persistent shortlist implementation — Part 2
+**Decision:** Render the dialog in Vue and use a dedicated local-safety lookup to verify the current U.S. support links before including them.
 
-> Extend the existing live provider-place screen with a Save to shortlist action on each current result and a separate saved-list view. Persist only provider place ID, name, address, coordinates, and saved timestamp in SQLite. Prevent duplicate provider IDs at the database layer, preserve the first saved snapshot, and allow an individual remove action after confirmation.
+## Bounded companion
 
-## Repeatable persistence verification — Part 2
+> Permit the model only after a completed practice and only for an optional fictional note. Backend validation—not a system prompt alone—must reject advice, diagnosis, model-directed skill changes, and unsafe output. Potential-crisis text must not be stored or transmitted.
 
-> Add a clearly labeled fixed JSON sample that is not live provider data. Use it in focused tests to prove save, duplicate prevention, persistence after reopening SQLite, and removal. Keep the previous mocked live-provider failure coverage so an external service failure cannot be mistaken for an empty successful response.
+**Decision:** Use a backend-only OpenRouter client, a narrow local phrase route, output limits/terms, and a fixed fallback.
 
-## Revised interaction approach — Part 2
+## Browser proxy revision
 
-> Do not rely only on disabling the browser save button to prevent duplicates. Treat the button as a helpful cue, but implement SQLite `INSERT OR IGNORE` with provider place ID as the primary key so repeated API requests cannot create two saved records or overwrite the earlier provider snapshot.
+> When the browser can load the Vue dev server but cannot reach a separate localhost API directly, keep the API boundary intact and make development requests same-origin through Vite’s `/api` proxy.
 
-## Local simulation extension
+**Decision:** Added an environment-configurable Vite proxy. Production build remains dependency-free.
 
-> Extend the saved API-hotel model with a backend-generated, deterministic simulated nightly rate and simulated available-room count. Persist those fields in SQLite, migrate existing local shortlist rows safely, display the values only with explicit “Simulated” wording, and verify that a browser refresh reads the saved values back from the database.
+## Navigation and session integrity revision
 
-## Grounded RAG hotel assistant — Part 2 revision
+> If someone leaves an active practice by choosing a top-level navigation action, preserve their control without leaving an unfinished active session in the local history.
 
-> Add a backend-only two-call LLM workflow for questions about saved hotels. First, give the model the exact SQLite schema and require JSON containing one read-only SELECT proposal. Validate and cap that SQL before executing it under a SQLite read-only authorizer. Then send the original question and exact retrieved records to the model again for a concise grounded answer. Return every stage to Vue for review and never expose the provider key to the browser.
+**Decision:** Before opening Saved history or returning home, Vue finishes the active session as a neutral `stopped` record. If that save fails, it stays on the current screen and shows the error instead of pretending the exit was saved.

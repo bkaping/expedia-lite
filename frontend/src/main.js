@@ -1,428 +1,327 @@
-import { createApp, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
+import { computed, createApp, onBeforeUnmount, onMounted, ref } from 'vue'
 import './style.css'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000'
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
+const SKILL = {
+  id: 'paced_breathing',
+  title: 'Paced breathing (4–6)',
+  summary: 'Breathe in for four counts and out for six, for one minute.',
+}
 
-const markerIcon = (selected) =>
-  L.divIcon({
-    className: 'hotel-marker-wrapper',
-    html: `<span class="hotel-marker${selected ? ' is-selected' : ''}" aria-hidden="true">H</span>`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-  })
-
-const popupContent = (hotel) => {
-  const content = document.createElement('div')
-  const title = document.createElement('strong')
-  const address = document.createElement('p')
-  title.textContent = hotel.name
-  address.textContent = hotel.address
-  content.append(title, address)
-  return content
+const errorMessage = async (response) => {
+  try {
+    const payload = await response.json()
+    return typeof payload.detail === 'object' ? payload.detail.message : payload.detail
+  } catch {
+    return 'The application did not return a usable response.'
+  }
 }
 
 const App = {
   setup() {
-    const zipCode = ref('')
-    const searchState = ref('idle')
-    const statusMessage = ref('Enter a five-digit U.S. ZIP code to start a live search.')
-    const searchData = ref(null)
-    const selectedPlaceId = ref('')
-    const mapElement = ref(null)
-    const shortlist = ref([])
-    const shortlistLoading = ref(true)
-    const shortlistMessage = ref('')
-    const shortlistProblem = ref('')
-    const assistantQuestion = ref('')
-    const assistantLoading = ref(false)
-    const assistantResult = ref(null)
-    const assistantProblem = ref('')
+    const screen = ref('home')
+    const history = ref({ usual_skill_id: null, sessions: [], messages: [] })
+    const currentSession = ref(null)
+    const stage = ref('ready')
+    const loadingHistory = ref(false)
+    const problem = ref('')
+    const crisisOpen = ref(false)
+    const reflectionText = ref('')
+    const reflectionResult = ref(null)
+    const reflectionLoading = ref(false)
+    const breathElapsed = ref(0)
+    const breathRunning = ref(false)
 
-    let map
-    let centerMarker
-    const hotelMarkers = new Map()
+    let timerId
+    let elapsedMs = 0
+    let runningSince = 0
 
-    const clearMapResults = () => {
-      hotelMarkers.forEach((marker) => marker.remove())
-      hotelMarkers.clear()
-      centerMarker?.remove()
-      centerMarker = undefined
-    }
+    const remaining = computed(() => Math.max(0, 60 - breathElapsed.value))
+    const phase = computed(() => {
+      const second = breathElapsed.value % 10
+      return second < 4
+        ? { text: 'Breathe in', count: 4 - second, direction: 'in' }
+        : { text: 'Breathe out', count: 10 - second, direction: 'out' }
+    })
+    const hasUsualSkill = computed(() => history.value.usual_skill_id === SKILL.id)
 
-    const updateMarkerSelection = () => {
-      hotelMarkers.forEach((marker, placeId) => {
-        marker.setIcon(markerIcon(placeId === selectedPlaceId.value))
-      })
-    }
-
-    const selectHotel = (hotel, shouldFocusCard = false) => {
-      selectedPlaceId.value = hotel.provider_place_id
-      updateMarkerSelection()
-      const marker = hotelMarkers.get(hotel.provider_place_id)
-      if (marker) {
-        marker.openPopup()
-        map.panTo(marker.getLatLng())
-      }
-      if (shouldFocusCard) {
-        window.setTimeout(() => document.getElementById(`hotel-${hotel.provider_place_id}`)?.focus(), 0)
-      }
-    }
-
-    const drawMapResults = async () => {
-      clearMapResults()
-      if (!map || !searchData.value) return
-
-      const { center, hotels } = searchData.value
-      centerMarker = L.circleMarker([center.latitude, center.longitude], {
-        color: '#304f96',
-        fillColor: '#9fb7f4',
-        fillOpacity: 0.95,
-        radius: 8,
-        weight: 3,
-      })
-        .addTo(map)
-        .bindTooltip(`Search center: ${center.label}`, { direction: 'top' })
-
-      hotels.forEach((hotel) => {
-        const marker = L.marker([hotel.latitude, hotel.longitude], {
-          icon: markerIcon(hotel.provider_place_id === selectedPlaceId.value),
-          keyboard: true,
-          title: hotel.name,
-        })
-          .addTo(map)
-          .bindPopup(popupContent(hotel))
-          .on('click', () => selectHotel(hotel, true))
-        hotelMarkers.set(hotel.provider_place_id, marker)
-      })
-
-      await nextTick()
-      map.invalidateSize()
-      const points = [[center.latitude, center.longitude], ...hotels.map((hotel) => [hotel.latitude, hotel.longitude])]
-      map.fitBounds(L.latLngBounds(points), { padding: [36, 36], maxZoom: 13 })
-    }
-
-    const errorMessage = async (response) => {
-      try {
-        const payload = await response.json()
-        if (typeof payload.detail === 'object') return payload.detail.message
-        return payload.detail
-      } catch {
-        return 'The live hotel service did not return a usable response.'
-      }
-    }
-
-    const savedEntryFor = (hotel) =>
-      shortlist.value.find((place) => place.provider_place_id === hotel.provider_place_id)
-
-    const isSaved = (hotel) => Boolean(savedEntryFor(hotel))
-
-    const formatCurrency = (amount) =>
-      new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
-
-    const loadShortlist = async () => {
-      shortlistLoading.value = true
-      shortlistMessage.value = ''
-      shortlistProblem.value = ''
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/shortlist`)
-        if (!response.ok) throw new Error(await errorMessage(response))
-        shortlist.value = await response.json()
-        shortlistMessage.value = shortlist.value.length
-          ? `Read ${shortlist.value.length} saved hotel${shortlist.value.length === 1 ? '' : 's'} from the local SQLite database.`
-          : 'Read the local SQLite database. No hotels are saved yet.'
-      } catch (error) {
-        shortlistProblem.value = error.message || 'The saved shortlist could not be loaded.'
-      } finally {
-        shortlistLoading.value = false
-      }
-    }
-
-    const saveToShortlist = async (hotel) => {
-      shortlistMessage.value = ''
-      shortlistProblem.value = ''
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/shortlist`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            provider_place_id: hotel.provider_place_id,
-            name: hotel.name,
-            address: hotel.address,
-            latitude: hotel.latitude,
-            longitude: hotel.longitude,
-          }),
-        })
-        if (!response.ok) throw new Error(await errorMessage(response))
-        const result = await response.json()
-        if (result.created) shortlist.value = [result.place, ...shortlist.value]
-        shortlistMessage.value = result.created
-          ? `${result.place.name} was saved locally with a simulated nightly rate of ${formatCurrency(result.place.simulated_nightly_rate_usd)} and ${result.place.simulated_available_rooms} simulated available room${result.place.simulated_available_rooms === 1 ? '' : 's'}.`
-          : `${result.place.name} is already saved with its original local simulated rate and availability.`
-      } catch (error) {
-        shortlistProblem.value = error.message || 'This provider place could not be saved.'
-      }
-    }
-
-    const removeFromShortlist = async (place) => {
-      if (!window.confirm(`Remove ${place.name} from your shortlist?`)) return
-      shortlistMessage.value = ''
-      shortlistProblem.value = ''
-      try {
-        const response = await fetch(
-          `${API_BASE_URL}/api/shortlist/${encodeURIComponent(place.provider_place_id)}`,
-          { method: 'DELETE' },
-        )
-        if (!response.ok) throw new Error(await errorMessage(response))
-        shortlist.value = shortlist.value.filter((item) => item.provider_place_id !== place.provider_place_id)
-        shortlistMessage.value = `${place.name} was removed from your shortlist.`
-      } catch (error) {
-        shortlistProblem.value = error.message || 'This saved place could not be removed.'
-      }
-    }
-
-    const formatSavedAt = (timestamp) =>
-      new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(
-        new Date(timestamp),
+    const formatDate = (value) =>
+      new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(
+        new Date(value),
       )
 
-    const formatRecords = (records) => JSON.stringify(records, null, 2)
-
-    const askHotelAssistant = async () => {
-      const question = assistantQuestion.value.trim()
-      assistantProblem.value = ''
-      assistantResult.value = null
-      if (question.length < 2) {
-        assistantProblem.value = 'Enter a hotel question with at least two characters.'
-        return
-      }
-
-      assistantLoading.value = true
+    const loadHistory = async () => {
+      loadingHistory.value = true
       try {
-        const response = await fetch(`${API_BASE_URL}/api/hotel-assistant`, {
+        const response = await fetch(`${API_BASE_URL}/api/history`)
+        if (!response.ok) throw new Error(await errorMessage(response))
+        history.value = await response.json()
+      } catch (error) {
+        problem.value = error.message || 'Saved history could not be loaded.'
+      } finally {
+        loadingHistory.value = false
+      }
+    }
+
+    const beginSession = async (source = 'chosen') => {
+      problem.value = ''
+      reflectionResult.value = null
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/sessions`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question }),
+          body: JSON.stringify({ skill_id: SKILL.id, source }),
         })
         if (!response.ok) throw new Error(await errorMessage(response))
-        assistantResult.value = await response.json()
+        currentSession.value = await response.json()
+        elapsedMs = 0
+        breathElapsed.value = 0
+        stage.value = 'ready'
+        screen.value = 'practice'
       } catch (error) {
-        assistantProblem.value = error.message || 'The hotel assistant could not answer that question.'
-      } finally {
-        assistantLoading.value = false
+        problem.value = error.message || 'The practice could not be started.'
       }
     }
 
-    const search = async () => {
-      const requestedZip = zipCode.value.trim()
-      selectedPlaceId.value = ''
-      searchData.value = null
-      clearMapResults()
+    const stopTimer = () => {
+      if (breathRunning.value) elapsedMs += Date.now() - runningSince
+      breathRunning.value = false
+      window.clearInterval(timerId)
+      timerId = undefined
+      breathElapsed.value = Math.min(60, Math.floor(elapsedMs / 1000))
+    }
 
-      if (!/^\d{5}$/.test(requestedZip)) {
-        searchState.value = 'invalid'
-        statusMessage.value = 'Enter exactly five digits, including a leading zero when your ZIP code has one.'
+    const finishPractice = async (outcome, activeSeconds) => {
+      if (!currentSession.value || currentSession.value.outcome !== 'active') return false
+      stopTimer()
+      problem.value = ''
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/sessions/${currentSession.value.id}/finish`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ outcome, active_seconds: Math.max(0, Math.round(activeSeconds)) }),
+        })
+        if (!response.ok) throw new Error(await errorMessage(response))
+        currentSession.value = await response.json()
+        stage.value = 'finished'
+        await loadHistory()
+        return true
+      } catch (error) {
+        problem.value = error.message || 'The practice result could not be saved. You can still use Crisis support or return later.'
+        return false
+      }
+    }
+
+    const updateTimer = () => {
+      const totalMs = elapsedMs + (breathRunning.value ? Date.now() - runningSince : 0)
+      breathElapsed.value = Math.min(60, Math.floor(totalMs / 1000))
+      if (totalMs >= 60_000) {
+        stopTimer()
+        void finishPractice('completed', 60)
+      }
+    }
+
+    const startBreathing = () => {
+      stage.value = 'active'
+      runningSince = Date.now()
+      breathRunning.value = true
+      timerId = window.setInterval(updateTimer, 200)
+      updateTimer()
+    }
+
+    const resumeBreathing = () => {
+      runningSince = Date.now()
+      breathRunning.value = true
+      timerId = window.setInterval(updateTimer, 200)
+      updateTimer()
+    }
+
+    const pauseBreathing = () => stopTimer()
+
+    const leavePractice = () => {
+      const activeSeconds = breathElapsed.value
+      if (currentSession.value?.outcome === 'active') return finishPractice('stopped', activeSeconds)
+      return Promise.resolve(false)
+    }
+
+    const goHome = async () => {
+      if (currentSession.value?.outcome === 'active') {
+        const stopped = await leavePractice()
+        if (!stopped) return
+      }
+      stopTimer()
+      screen.value = 'home'
+      currentSession.value = null
+      stage.value = 'ready'
+    }
+
+    const sendReflection = async () => {
+      const message = reflectionText.value.trim()
+      reflectionResult.value = null
+      problem.value = ''
+      if (!message) {
+        problem.value = 'Enter a short fictional note, or leave this optional step.'
         return
       }
-
-      searchState.value = 'loading'
-      statusMessage.value = `Looking up ZIP code ${requestedZip} and nearby provider-listed hotels…`
+      reflectionLoading.value = true
       try {
-        const response = await fetch(`${API_BASE_URL}/api/live-hotels?zip_code=${encodeURIComponent(requestedZip)}`)
-        if (!response.ok) {
-          const message = await errorMessage(response)
-          if (response.status === 404) {
-            searchState.value = 'unresolved'
-          } else if (response.status === 429) {
-            searchState.value = 'rate-limited'
-          } else {
-            searchState.value = 'failed'
-          }
-          statusMessage.value = message
-          return
-        }
-        searchData.value = await response.json()
-        if (searchData.value.hotels.length === 0) {
-          searchState.value = 'empty'
-          statusMessage.value = `ZIP code ${requestedZip} resolved to ${searchData.value.center.label}, but Geoapify returned no nearby hotel places within 5 km.`
-        } else {
-          searchState.value = 'results'
-          statusMessage.value = `${searchData.value.hotels.length} provider-listed hotel${searchData.value.hotels.length === 1 ? '' : 's'} near ${searchData.value.center.label}. Select a list item or map marker to connect both views.`
-        }
-        await drawMapResults()
-      } catch {
-        searchState.value = 'failed'
-        statusMessage.value = 'The live hotel request could not reach this application. Check that the backend is running, then try again.'
+        const response = await fetch(`${API_BASE_URL}/api/conversations`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ session_id: currentSession.value.id, message }),
+        })
+        if (!response.ok) throw new Error(await errorMessage(response))
+        reflectionResult.value = await response.json()
+        reflectionText.value = ''
+        if (reflectionResult.value.mode === 'safety_route') crisisOpen.value = true
+        await loadHistory()
+      } catch (error) {
+        problem.value = error.message || 'The optional companion is unavailable. The practice is still saved.'
+      } finally {
+        reflectionLoading.value = false
       }
     }
 
-    onMounted(() => {
-      map = L.map(mapElement.value, { scrollWheelZoom: true }).setView([39.8283, -98.5795], 4)
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      }).addTo(map)
-      loadShortlist()
-    })
+    const showHistory = async () => {
+      problem.value = ''
+      if (currentSession.value?.outcome === 'active') {
+        const stopped = await leavePractice()
+        if (!stopped) return
+      }
+      screen.value = 'history'
+      await loadHistory()
+    }
 
-    onBeforeUnmount(() => map?.remove())
+    onMounted(() => { void loadHistory() })
+    onBeforeUnmount(() => stopTimer())
 
     return {
-      askHotelAssistant,
-      assistantLoading,
-      assistantProblem,
-      assistantQuestion,
-      assistantResult,
-      formatCurrency,
-      formatRecords,
-      formatSavedAt,
-      isSaved,
-      loadShortlist,
-      mapElement,
-      removeFromShortlist,
-      saveToShortlist,
-      search,
-      searchData,
-      searchState,
-      savedEntryFor,
-      selectHotel,
-      selectedPlaceId,
-      shortlist,
-      shortlistLoading,
-      shortlistMessage,
-      shortlistProblem,
-      statusMessage,
-      zipCode,
+      SKILL,
+      beginSession,
+      breathElapsed,
+      breathRunning,
+      crisisOpen,
+      currentSession,
+      formatDate,
+      goHome,
+      hasUsualSkill,
+      history,
+      leavePractice,
+      loadingHistory,
+      pauseBreathing,
+      phase,
+      problem,
+      reflectionLoading,
+      reflectionResult,
+      reflectionText,
+      remaining,
+      resumeBreathing,
+      screen,
+      sendReflection,
+      showHistory,
+      stage,
+      startBreathing,
     }
   },
   template: `
-    <main class="shell">
-      <header class="hero">
-        <p class="eyebrow">ASSIGNMENT 2 · PART 2</p>
-        <h1>Wayfarer Lite</h1>
-        <p class="lede">Explore provider-listed hotels near a U.S. ZIP code.</p>
+    <main class="app-shell">
+      <button class="crisis-button" type="button" @click="crisisOpen = true">Crisis support</button>
+
+      <header class="site-header">
+        <button class="wordmark" type="button" @click="goHome">stillpoint</button>
+        <nav aria-label="Primary navigation">
+          <button :aria-current="screen === 'home' ? 'page' : undefined" type="button" @click="goHome">Practice</button>
+          <button :aria-current="screen === 'history' ? 'page' : undefined" type="button" @click="showHistory">Saved history</button>
+        </nav>
       </header>
 
-      <section class="search-panel" aria-labelledby="search-heading">
-        <div>
-          <p class="eyebrow">LIVE HOTEL SEARCH</p>
-          <h2 id="search-heading">Search around a ZIP code</h2>
-        </div>
-        <form class="search-form" @submit.prevent="search">
-          <label for="zip-code">Five-digit U.S. ZIP code</label>
-          <div class="search-controls">
-            <input id="zip-code" v-model="zipCode" inputmode="numeric" autocomplete="postal-code" maxlength="5" placeholder="e.g., 02108" aria-describedby="live-status" />
-            <button class="primary" type="submit" :disabled="searchState === 'loading'">{{ searchState === 'loading' ? 'Searching…' : 'Search hotels' }}</button>
-          </div>
-        </form>
-        <p id="live-status" class="status-message" :class="searchState" role="status" aria-live="polite">{{ statusMessage }}</p>
+      <section v-if="screen === 'home'" class="home-view" aria-labelledby="home-heading">
+        <p class="eyebrow">COURSEWORK SKILLS PROTOTYPE</p>
+        <h1 id="home-heading">One small practice.</h1>
+        <p class="lede">For fictional class scenarios only. This is not therapy, diagnosis, crisis care, or a service to rely on during distress.</p>
+        <p v-if="problem" class="notice problem" role="alert">{{ problem }}</p>
+        <section class="practice-card" aria-labelledby="practice-heading">
+          <p class="eyebrow">60 SECONDS INTENDED</p>
+          <h2 id="practice-heading">{{ SKILL.title }}</h2>
+          <p>{{ SKILL.summary }}</p>
+          <p v-if="hasUsualSkill" class="usual-copy">Your most recently completed practice was this one. Choosing it again is optional.</p>
+          <button class="primary" type="button" @click="beginSession(hasUsualSkill ? 'usual_skill' : 'chosen')">{{ hasUsualSkill ? 'Use this practice again' : 'Choose this practice' }}</button>
+        </section>
+        <p class="deferred-note">5–4–3–2–1 sensory grounding remains planned for a later iteration; this Part 3.2 scope implements one complete skill.</p>
       </section>
 
-      <section class="explorer" aria-label="Live hotel search results">
-        <div class="results-panel">
-          <div class="results-heading">
-            <div>
-              <p class="eyebrow">RESULT LIST</p>
-              <h2>Nearby hotel places</h2>
-            </div>
-            <p v-if="searchData" class="result-note">Up to {{ searchData.result_limit }} places within {{ searchData.radius_meters / 1000 }} km</p>
-          </div>
+      <section v-else-if="screen === 'practice' && currentSession" class="practice-view" aria-labelledby="practice-title">
+        <p class="eyebrow">ONE STEP AT A TIME</p>
+        <h1 id="practice-title">{{ SKILL.title }}</h1>
+        <p v-if="problem" class="notice problem" role="alert">{{ problem }}</p>
 
-          <p v-if="!searchData && searchState === 'idle'" class="empty-copy">Your live provider results will appear here after a ZIP search.</p>
-          <p v-else-if="searchState === 'empty'" class="empty-copy">No nearby hotel places were returned for this resolved search center.</p>
-          <ol v-else-if="searchData" class="hotel-list">
-            <li v-for="hotel in searchData.hotels" :key="hotel.provider_place_id">
-              <article class="hotel-card" :class="{ selected: selectedPlaceId === hotel.provider_place_id }">
-                <button
-                  :id="'hotel-' + hotel.provider_place_id"
-                  class="hotel-select"
-                  type="button"
-                  :aria-pressed="selectedPlaceId === hotel.provider_place_id"
-                  @click="selectHotel(hotel)"
-                >
-                  <strong>{{ hotel.name }}</strong>
-                  <span>{{ hotel.address }}</span>
-                  <small v-if="selectedPlaceId === hotel.provider_place_id">Selected on map</small>
-                </button>
-                <p v-if="savedEntryFor(hotel)" class="simulation-note">
-                  Local simulation after saving: {{ formatCurrency(savedEntryFor(hotel).simulated_nightly_rate_usd) }} nightly · {{ savedEntryFor(hotel).simulated_available_rooms }} room{{ savedEntryFor(hotel).simulated_available_rooms === 1 ? '' : 's' }} available
-                </p>
-                <p v-else class="simulation-note">Save this provider place to assign a local simulated nightly rate and availability.</p>
-                <button class="save-button" :class="{ saved: isSaved(hotel) }" type="button" @click="saveToShortlist(hotel)">
-                  {{ isSaved(hotel) ? 'Already saved — check again' : 'Save to shortlist' }}
-                </button>
-              </article>
-            </li>
+        <section v-if="stage === 'ready'" class="exercise-card ready-card">
+          <p class="instruction">The next screen begins the 60-second practice.</p>
+          <p class="quiet-copy">You may pause or leave at any time. Nothing needs to be explained or completed.</p>
+          <button class="primary" type="button" @click="startBreathing">Begin practice</button>
+          <button class="text-button" type="button" @click="leavePractice">Leave this practice</button>
+        </section>
+
+        <section v-else-if="stage === 'active'" class="exercise-card breathing-card" aria-label="Paced breathing exercise">
+          <p class="timer-copy">{{ remaining }} seconds remaining</p>
+          <div class="breath-orb" :class="'phase-' + phase.direction" aria-hidden="true"><span>{{ phase.count }}</span></div>
+          <p class="breath-label" aria-live="polite">{{ phase.text }}</p>
+          <p v-if="breathRunning" class="quiet-copy">Follow the count if it feels useful.</p>
+          <p v-else class="quiet-copy">The timer is paused. Continue only if you want to.</p>
+          <button v-if="breathRunning" class="quiet-button" type="button" @click="pauseBreathing">Pause</button>
+          <button v-else class="primary" type="button" @click="resumeBreathing">Continue when ready</button>
+          <button class="text-button" type="button" @click="leavePractice">End this practice</button>
+        </section>
+
+        <section v-else class="exercise-card finish-card">
+          <p class="eyebrow">{{ currentSession.outcome === 'completed' ? 'PRACTICE SAVED' : 'PRACTICE ENDED' }}</p>
+          <h2>{{ currentSession.outcome === 'completed' ? 'This practice is marked complete.' : 'You chose to stop. Nothing else is required.' }}</h2>
+          <p class="quiet-copy">Active time recorded: {{ currentSession.active_seconds }} seconds.</p>
+          <form v-if="currentSession.outcome === 'completed'" class="companion-form" @submit.prevent="sendReflection">
+            <label for="fictional-note">Optional fictional note for the course-prototype companion</label>
+            <textarea id="fictional-note" v-model="reflectionText" maxlength="320" placeholder="Example: I followed the fictional count."></textarea>
+            <p class="quiet-copy">The model can only return one bounded acknowledgment. It cannot change this practice or provide therapeutic advice.</p>
+            <button class="quiet-button" type="submit" :disabled="reflectionLoading">{{ reflectionLoading ? 'Sending…' : 'Save note and ask companion' }}</button>
+          </form>
+          <p v-if="reflectionResult" class="notice" :class="{ warning: reflectionResult.mode === 'safety_route' }">{{ reflectionResult.message }}</p>
+          <button class="primary" type="button" @click="goHome">Choose a practice</button>
+        </section>
+      </section>
+
+      <section v-else class="history-view" aria-labelledby="history-heading">
+        <p class="eyebrow">LOCAL SQLITE RECORD</p>
+        <h1 id="history-heading">Saved practice history</h1>
+        <p class="lede">This local review shows recent practice sessions and optional fictional notes. It does not score or diagnose you.</p>
+        <button class="quiet-button refresh-button" type="button" :disabled="loadingHistory" @click="showHistory">{{ loadingHistory ? 'Refreshing…' : 'Refresh history' }}</button>
+        <p v-if="problem" class="notice problem" role="alert">{{ problem }}</p>
+        <section class="history-section" aria-labelledby="sessions-heading">
+          <h2 id="sessions-heading">Practice sessions</h2>
+          <p v-if="!history.sessions.length" class="empty-copy">No sessions are saved yet.</p>
+          <ol v-else class="history-list">
+            <li v-for="session in history.sessions" :key="session.id"><article class="history-card"><div><strong>Paced breathing (4–6)</strong><span>{{ formatDate(session.started_at) }}</span></div><span class="outcome" :class="session.outcome">{{ session.outcome }}</span></article></li>
           </ol>
-          <p v-if="searchData" class="provider-note">Names, addresses, and map points come from Geoapify. Rates and room counts are local simulations shown only after saving; they are not provider prices, availability, or booking confirmation.</p>
-        </div>
-
-        <div class="map-panel">
-          <div class="map-label"><span class="center-dot" aria-hidden="true"></span> Search center <span class="hotel-dot" aria-hidden="true">H</span> Hotel place</div>
-          <div ref="mapElement" class="map" aria-label="Map of nearby hotel places"></div>
-        </div>
+        </section>
+        <section class="history-section" aria-labelledby="notes-heading">
+          <h2 id="notes-heading">Optional companion notes</h2>
+          <p v-if="!history.messages.length" class="empty-copy">No optional notes are saved yet.</p>
+          <ol v-else class="message-list">
+            <li v-for="message in history.messages" :key="message.id"><article class="message-card" :class="message.role"><strong>{{ message.role === 'assistant' ? 'Companion' : message.role === 'system' ? 'Safety handling' : 'Fictional note' }}</strong><p>{{ message.body }}</p></article></li>
+          </ol>
+        </section>
       </section>
 
-      <section class="shortlist-panel" aria-labelledby="shortlist-heading">
-        <div class="shortlist-heading">
-          <div>
-            <p class="eyebrow">PART 2 · SQLITE PERSISTENCE</p>
-            <h2 id="shortlist-heading">Saved shortlist</h2>
-          </div>
-          <button class="quiet-button" type="button" :disabled="shortlistLoading" @click="loadShortlist">Refresh saved places</button>
-        </div>
-        <p class="shortlist-intro">These are saved provider snapshots with locally generated simulated rates and availability. They remain recognizable after a browser or backend restart, even if a later live search changes.</p>
-        <p v-if="shortlistMessage" class="shortlist-message success" role="status">{{ shortlistMessage }}</p>
-        <p v-if="shortlistProblem" class="shortlist-message error" role="alert">{{ shortlistProblem }}</p>
-        <p v-if="shortlistLoading" class="shortlist-message">Loading saved places…</p>
-        <p v-else-if="!shortlist.length" class="shortlist-message">No saved places yet. Use “Save to shortlist” on a live provider result.</p>
-        <ol v-else class="shortlist-list">
-          <li v-for="place in shortlist" :key="place.provider_place_id" class="shortlist-card">
-            <div>
-              <h3>{{ place.name }}</h3>
-              <p>{{ place.address }}</p>
-              <p class="simulated-offer">Simulated nightly rate: <strong>{{ formatCurrency(place.simulated_nightly_rate_usd) }}</strong> · Simulated availability: <strong>{{ place.simulated_available_rooms }} room{{ place.simulated_available_rooms === 1 ? '' : 's' }}</strong></p>
-              <small>Provider snapshot saved {{ formatSavedAt(place.saved_at) }}</small>
-            </div>
-            <button class="remove-button" type="button" @click="removeFromShortlist(place)">Remove</button>
-          </li>
-        </ol>
-      </section>
-
-      <section class="assistant-panel" aria-labelledby="assistant-heading">
-        <div>
-          <p class="eyebrow">PART 2 · GROUNDED HOTEL ASSISTANT</p>
-          <h2 id="assistant-heading">Ask your saved hotels</h2>
-        </div>
-        <p class="assistant-intro">Ask about only the hotels in your local SQLite shortlist. The assistant proposes one safe read-only SQL query, retrieves those records, then answers using that evidence. Rates and room counts remain local simulations.</p>
-        <form class="assistant-form" @submit.prevent="askHotelAssistant">
-          <label for="assistant-question">Question about saved hotels</label>
-          <textarea id="assistant-question" v-model="assistantQuestion" maxlength="500" placeholder="Which saved hotel has the lowest simulated nightly rate?" :disabled="assistantLoading"></textarea>
-          <button class="primary" type="submit" :disabled="assistantLoading">{{ assistantLoading ? 'Planning and checking…' : 'Ask assistant' }}</button>
-        </form>
-        <p v-if="assistantProblem" class="assistant-message error" role="alert">{{ assistantProblem }}</p>
-        <p v-else-if="assistantLoading" class="assistant-message" role="status">The backend is requesting a SQL proposal, reading the saved SQLite records, and requesting a grounded answer…</p>
-        <article v-else-if="assistantResult" class="assistant-result" aria-live="polite">
-          <div class="assistant-step">
-            <h3>1. Your question</h3>
-            <p>{{ assistantResult.question }}</p>
-          </div>
-          <div class="assistant-step">
-            <h3>2. LLM-proposed read-only SQL</h3>
-            <pre><code>{{ assistantResult.proposed_sql }}</code></pre>
-          </div>
-          <div class="assistant-step">
-            <h3>3. Retrieved local records</h3>
-            <pre><code>{{ formatRecords(assistantResult.records) }}</code></pre>
-          </div>
-          <div class="assistant-step answer-step">
-            <h3>4. Grounded answer</h3>
-            <p>{{ assistantResult.answer }}</p>
-          </div>
-          <p class="assistant-model">Model reported by provider: {{ assistantResult.model }}</p>
-        </article>
-      </section>
+      <div v-if="crisisOpen" class="modal-backdrop" @click.self="crisisOpen = false">
+        <section class="crisis-modal" role="dialog" aria-modal="true" aria-labelledby="crisis-heading">
+          <button class="modal-close" type="button" aria-label="Close crisis support" @click="crisisOpen = false">×</button>
+          <p class="eyebrow">CRISIS SUPPORT</p>
+          <h2 id="crisis-heading">Get support outside this prototype.</h2>
+          <p>If there is immediate danger, seek emergency services now.</p>
+          <p>In the United States and its territories, the 988 Suicide &amp; Crisis Lifeline is available by phone, text, or chat.</p>
+          <div class="support-links"><a href="tel:988?oai_link_source=model_response_hotline">Call 988</a><a href="sms:988?oai_link_source=model_response_hotline">Text 988</a><a href="https://988lifeline.org/chat/?oai_link_source=model_response_hotline" target="_blank" rel="noreferrer">Chat with 988</a></div>
+          <p class="quiet-copy">This panel is already in the browser. It does not rely on a model response, detection result, or the API.</p>
+          <button class="primary" type="button" @click="crisisOpen = false">Return to prototype</button>
+        </section>
+      </div>
     </main>
   `,
 }

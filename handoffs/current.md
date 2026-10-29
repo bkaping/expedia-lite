@@ -1,29 +1,25 @@
-# Current handoff — Wayfarer Lite Assignment 2, Part 2
+# Current handoff — Stillpoint Assignment 3.2
 
 ## What works
 
-- Vue accepts five-digit U.S. ZIP input and presents loading, invalid, unresolved, empty, failed, rate-limited, and successful-result states.
-- FastAPI resolves the exact requested U.S. ZIP through Geoapify, then searches `accommodation.hotel` places in a 5 km circle around that returned coordinate.
-- The live response returns provider names, addresses, place IDs, and coordinates only. The Vue list and Leaflet markers share one selected place.
-- Root `.env` is ignored and the backend uses it without exposing the key to Vue.
-- The Part 2 saved shortlist persists provider snapshots in local SQLite. A duplicate provider ID leaves one original saved record; an individual remove is confirmed in the browser before deletion.
-- Saved provider snapshots now include a backend-generated simulated nightly rate and available-room count. The frontend labels both values as local simulations, not Geoapify provider data. Existing SQLite shortlist rows are upgraded on startup.
-- `POST /api/hotel-assistant` now implements the revised Part 2 requirement: OpenRouter-backed LLM SQL proposal, backend validation, read-only SQLite retrieval, then a second grounded-answer LLM call. The UI displays the complete workflow.
+- Vue implements one paced-breathing flow: preparation, six 4–6 cycles, pause, neutral leave route, and finish state.
+- FastAPI initializes ignored SQLite `backend/data/skills_practice.db` and persists session and optional conversation records.
+- The history screen shows recent sessions/messages. A completed breathing session becomes an optional repeat shortcut.
+- The browser-local Crisis support control is present across home, practice, finish, and history states; it does not call FastAPI or the model.
+- The optional backend-only companion accepts fictional notes after completion, has local output validation/fallback, and redacts limited potential-crisis input before a model call.
+- Vite proxies `/api` in development; set `VITE_API_PROXY_TARGET` only when using a non-default backend port.
 
-## Checked
+## Checked on October 15 and rechecked on October 29, 2026
 
-- `npm install leaflet` after approval: installed Leaflet 1.9.4; npm audit reported no vulnerabilities.
-- `certifi` was added after the standard Python TLS store failed to verify Geoapify; all backend unit tests passed after the change.
-- `python3 -m unittest discover -s backend/tests -v`: 8 passing tests, including fixed-fixture duplicate, restart-persistence, and removal checks.
-- `npm run build` from `frontend/`: production build passed.
-- Live check on September 29, 2026: ZIP `02108` resolved to Boston, Massachusetts and returned 20 provider hotel places within the documented 5 km / 20-result limit.
-- Manual browser checks recorded in `screenshots/assignment2-part1/`: live list/map results, marker popup, list-to-map selection for Beacon Hill Hotel and Bistro, and invalid ZIP feedback. Those files remain linked in `reports/assignment2-part1/report.md`.
-- `test_initialize_upgrades_a_legacy_saved_place_with_local_simulation` proves a pre-simulation SQLite shortlist is upgraded without losing its saved provider record.
-- `test_rag_chat.py` uses a fake LLM to verify the two-call planner/retriever/answer flow and rejects writes, other tables, and oversized result limits before SQLite execution.
+- Backend suite: 16 passing tests.
+- Frontend production build: passed.
+- Browser: static support panel, pre-start voluntary exit → `stopped`/0 seconds, history rendering, full 60-second completion, fictional-note model acknowledgment, and active-practice navigation → neutral stopped history record.
+- Key-disabled localhost companion API: HTTP 503 `companion_not_configured` without another model call.
 
-## Remaining work
+## Remaining for Part 3.3
 
-- Manually verify the local simulation extension: save a live hotel, record its clearly labeled simulated rate and room count, refresh the browser, and confirm the same saved values are read from SQLite. Do not show the API key.
-- Live verification on October 6, 2026: the question “Which saved hotel has the lowest simulated nightly rate, and how many simulated rooms are available?” produced one read-only SELECT, retrieved Fairfield Inn & Suites at `$156.49` and `5` simulated rooms, and returned a grounded answer that labeled both values local simulations. OpenRouter reported `nvidia/nemotron-3-super-120b-a12b:free`.
-- Record the RAG workflow using that saved-hotel question. The screen recording must show question, proposed SQL, retrieved records, grounded answer, model, and expected-versus-observed verification. Do not show either API key.
-- Add the accessible video link and the Part 2 manual screenshots to the root `report.md` before submission.
+1. Implement grounding or justify keeping the one-skill scope.
+2. Complete the required 15 fictional scenarios and three explicit cross-case checks, using mocked responses by default.
+3. Capture the required finished-demo and failure-investigation recordings.
+4. Test reduced motion, keyboard-only flow, and a fuller range of interruption/failure cases.
+5. Update `AI-USE.md`, evidence log, and the report with later tests/recordings without exposing credentials.

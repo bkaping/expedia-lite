@@ -27,6 +27,7 @@ DATABASE_PATH = Path(os.getenv("WAYFARER_DB_PATH", DATA_DIR / "travel.db"))
 SHORTLIST_DATABASE_PATH = Path(
     os.getenv("WAYFARER_SHORTLIST_DB_PATH", DATA_DIR / "assignment2_shortlist.db")
 )
+SKILLS_DATABASE_PATH = Path(os.getenv("SKILLS_DB_PATH", DATA_DIR / "skills_practice.db"))
 GEOAPIFY_API_KEY = os.getenv("GEOAPIFY_API_KEY", "")
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY", "")
 OPENROUTER_MODEL = os.getenv("OPENROUTER_MODEL", "openrouter/free")

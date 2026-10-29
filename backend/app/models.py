@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 
@@ -113,3 +113,56 @@ class HotelAssistantResponse(BaseModel):
     records: list[dict[str, Any]]
     answer: str
     model: str
+
+
+# Assignment 3 models. The Assignment 2 models above remain available for the
+# preserved course artifacts; the active API uses the models below.
+SkillId = Literal["paced_breathing"]
+SessionSource = Literal["chosen", "usual_skill"]
+SessionOutcome = Literal["active", "completed", "stopped"]
+
+
+class StartSkillSessionRequest(BaseModel):
+    skill_id: SkillId
+    source: SessionSource
+
+
+class FinishSkillSessionRequest(BaseModel):
+    outcome: Literal["completed", "stopped"]
+    active_seconds: int = Field(ge=0, le=3600)
+
+
+class SkillSession(BaseModel):
+    id: str
+    skill_id: SkillId
+    source: SessionSource
+    outcome: SessionOutcome
+    active_seconds: int | None = Field(default=None, ge=0)
+    started_at: datetime
+    ended_at: datetime | None = None
+
+
+class ConversationMessage(BaseModel):
+    id: int
+    session_id: str
+    role: Literal["user", "assistant", "system"]
+    body: str
+    model: str | None = None
+    created_at: datetime
+
+
+class HistoryResponse(BaseModel):
+    usual_skill_id: SkillId | None = None
+    sessions: list[SkillSession]
+    messages: list[ConversationMessage]
+
+
+class CompanionRequest(BaseModel):
+    session_id: str = Field(min_length=8, max_length=64)
+    message: str = Field(min_length=1, max_length=320)
+
+
+class CompanionResponse(BaseModel):
+    mode: Literal["reply", "safety_route"]
+    message: str
+    model: str | None = None

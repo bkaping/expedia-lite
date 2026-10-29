@@ -52,7 +52,7 @@ class OpenRouterClient:
     def complete(self, messages: list[dict[str, str]]) -> LlmCompletion:
         if not self.api_key:
             raise AssistantConfigurationError(
-                "The hotel assistant is not configured. Add OPENROUTER_API_KEY to the local .env file, then restart FastAPI."
+                "The optional model companion is not configured. Add OPENROUTER_API_KEY to the local .env file, then restart FastAPI."
             )
 
         payload = json.dumps(
@@ -64,7 +64,7 @@ class OpenRouterClient:
             headers={
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",
-                "X-OpenRouter-Title": "Wayfarer Lite Assignment 2",
+                "X-OpenRouter-Title": "Stillpoint Coursework Prototype",
             },
             method="POST",
         )
@@ -76,7 +76,7 @@ class OpenRouterClient:
                 f"The LLM provider returned status {error.code}. Check the selected model and your OpenRouter account limits."
             ) from error
         except (URLError, TimeoutError) as error:
-            raise LlmRequestError("The hotel assistant could not reach the LLM provider.") from error
+            raise LlmRequestError("The optional model request could not reach the LLM provider.") from error
         except json.JSONDecodeError as error:
             raise LlmRequestError("The LLM provider returned an unreadable response.") from error
 

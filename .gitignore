@@ -7,5 +7,6 @@ __pycache__/
 *.py[cod]
 backend/data/travel.db
 backend/data/assignment2_shortlist.db
+backend/data/skills_practice.db
 frontend/node_modules/
 frontend/dist/
