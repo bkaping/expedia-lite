@@ -3,6 +3,14 @@ import './style.css'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 const EMPTY_PROFILE = () => ({ display_name: null, cue_style: null, practice_aim: null, updated_at: null })
+const CHATBOT_PROMPTS = [
+  'What is Stillpoint?',
+  'How does paced breathing work?',
+  'Can I stop a practice?',
+  'What information is saved?',
+  'Does the chatbot read my journal?',
+  'How does my profile change the app?',
+]
 const SKILL = {
   id: 'paced_breathing',
   title: 'Paced breathing (4–6)',
@@ -338,6 +346,11 @@ const App = {
       }
     }
 
+    const askChatbotPrompt = async (prompt) => {
+      reflectionText.value = prompt
+      await sendReflection()
+    }
+
     const showHistory = async () => {
       problem.value = ''
       if (currentSession.value?.outcome === 'active') {
@@ -353,7 +366,9 @@ const App = {
 
     return {
       SKILL,
+      CHATBOT_PROMPTS,
       aimCopy,
+      askChatbotPrompt,
       beginSession,
       breathElapsed,
       breathRunning,
@@ -575,6 +590,11 @@ const App = {
           <p>This fictional-coursework chatbot is not a therapist and does not diagnose, assess, or direct care.</p>
           <template v-if="chatSession">
             <p class="quiet-copy">It can respond because a fictional practice was completed. It receives your explicit profile choices and completed-practice count only.</p>
+            <section class="suggested-prompts" aria-labelledby="common-questions-heading">
+              <h3 id="common-questions-heading">Common questions</h3>
+              <p class="quiet-copy">These factual answers are scripted locally and do not call the model.</p>
+              <div class="prompt-chips"><button v-for="prompt in CHATBOT_PROMPTS" :key="prompt" class="prompt-chip" type="button" :disabled="reflectionLoading" @click="askChatbotPrompt(prompt)">{{ prompt }}</button></div>
+            </section>
             <form class="companion-form chat-form" @submit.prevent="sendReflection">
               <label for="chatbot-message">Optional fictional message</label>
               <textarea id="chatbot-message" v-model="reflectionText" maxlength="320" placeholder="Example: I followed the fictional count."></textarea>

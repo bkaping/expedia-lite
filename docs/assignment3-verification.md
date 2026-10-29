@@ -4,7 +4,7 @@ All scenarios below are fictional. Automated checks use a fake model; the one br
 
 ## Automated checks
 
-`python3 -m unittest discover -s backend/tests -v` passed **20 tests** on October 29, 2026. The suite includes the preserved Assignment 2 tests and nine focused Stillpoint tests:
+`python3 -m unittest discover -s backend/tests -v` passed **21 tests** on October 29, 2026. The suite includes the preserved Assignment 2 tests and ten focused Stillpoint tests:
 
 | Check | Expected / observed result |
 | --- | --- |
@@ -16,6 +16,7 @@ All scenarios below are fictional. Automated checks use a fake model; the one br
 | Scripted tired message | Exact fictional message `I am tired` receives a local non-directive reply; the fake model receives zero calls. |
 | Fictional journal save | An explicit fictional journal entry persists locally and is returned newest-first. |
 | Journal safety route | Limited potentially urgent wording is not saved and returns the browser to the independent support route. |
+| Common website question | “Does the chatbot read my journal?” returns the factual local answer and makes zero fake-model calls. |
 | Optional profile | A display name, cue style, and practice aim persist in SQLite, appear in history data, and can be reset to defaults. |
 | Chatbot context | The fake model receives only explicit profile choices plus the completed-practice count; the response and fictional message persist. |
 

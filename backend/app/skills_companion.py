@@ -19,6 +19,14 @@ UNSAFE_REPLY_PATTERN = re.compile(
 FALLBACK_REPLY = "Your fictional note is saved with this practice. You can choose what happens next."
 SCRIPTED_REPLIES = {
     "i am tired": "Thanks for the fictional note. Rest may be one choice to consider; you can choose what happens next.",
+    "what is stillpoint": "Stillpoint is a localhost-only coursework prototype for fictional skill practice. It is not therapy or diagnosis.",
+    "how does paced breathing work": "This practice has six fixed cycles: breathe in for four counts and out for six, for 60 active seconds.",
+    "can i stop a practice": "Yes. You can pause or end the practice at any time. Ending saves a neutral stopped record.",
+    "what information is saved": "It saves optional profile choices, practice timing/outcomes, fictional chatbot messages, and separate journal entries locally.",
+    "does the chatbot read my journal": "No. Journal entries stay separate in local SQLite and are never sent to the chatbot or model.",
+    "is this therapy": "No. Stillpoint is a fictional coursework prototype. It does not provide therapy, diagnosis, or crisis care.",
+    "how does my profile change the app": "Your profile changes the greeting and cue explanation. It can be edited or reset at any time.",
+    "how does the chatbot work": "After a completed practice, it can use your fictional message, profile choices, and practice count in a short reply.",
 }
 
 
@@ -49,7 +57,8 @@ class SkillsCompanionController:
             )
 
         self.skills_controller.save_message(session_id, "user", cleaned_message)
-        scripted_reply = SCRIPTED_REPLIES.get(cleaned_message.casefold().rstrip(".!?"))
+        prompt_key = re.sub(r"\s+", " ", cleaned_message.casefold()).strip(" .!?")
+        scripted_reply = SCRIPTED_REPLIES.get(prompt_key)
         if scripted_reply:
             self.skills_controller.save_message(
                 session_id, "assistant", scripted_reply, "local scripted response"

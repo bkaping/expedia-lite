@@ -111,6 +111,11 @@ textarea { background: #fff; border: 1px solid #aebbb4; border-radius: 8px; colo
 .crisis-modal h2, .chat-modal h2 { font-size: 2rem; max-width: 380px; }
 .crisis-modal p, .chat-modal p { color: #3f4d45; line-height: 1.57; }
 .chat-form { margin-bottom: 6px; }
+.suggested-prompts { border-top: 1px solid #dfded5; margin-top: 20px; padding-top: 19px; }
+.suggested-prompts h3 { color: #394941; font-size: 1rem; margin: 0 0 4px; }
+.prompt-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.prompt-chip { background: #f0f6f1; border: 1px solid #9eb5ad; border-radius: 999px; color: #305e52; font-size: .82rem; line-height: 1.25; padding: 8px 10px; text-align: left; }
+.prompt-chip:hover:not(:disabled) { background: #dcebe1; }
 .support-links { display: flex; flex-wrap: wrap; gap: 9px; margin: 18px 0; }
 .support-links a { background: #eef4ef; border: 1px solid #9db5ac; border-radius: 7px; color: #1d5e51; font-weight: 750; padding: 9px 11px; }
 .modal-close { background: none; border: 0; color: #536159; font-size: 1.8rem; line-height: 1; padding: 3px 7px; position: absolute; right: 12px; top: 10px; }

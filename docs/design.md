@@ -40,6 +40,8 @@ The model is optional and backend-only. After a **completed** session, someone m
 
 One presentation-safe local script handles the exact fictional message `I am tired` before any model call: “Thanks for the fictional note. Rest may be one choice to consider; you can choose what happens next.” It demonstrates a deterministic response while avoiding a universal sleep target or health instruction.
 
+Six local common-question scripts answer factual questions about Stillpoint, paced breathing, stopping, saved data, journal separation, and profile behavior. These deterministic answers are visible as buttons in the chatbot, saved as local chatbot records, and never call the model. The model remains the bounded fallback for other optional fictional messages after completion.
+
 The model cannot change the breathing sequence, operate the timer, select a skill, prevent an exit, write SQLite directly, or provide the crisis route. The frontend catches provider/configuration failures and leaves the completed practice intact. A narrow local phrase check prevents limited potential-crisis text from being saved or transmitted; it creates only a generic safety event. This check is not a distress detector: it can miss wording and over-match fictional text.
 
 ## Persistent records

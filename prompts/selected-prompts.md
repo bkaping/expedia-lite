@@ -55,3 +55,9 @@ This curated record excludes credentials, personal information, real distress di
 > Add an optional journal that persists explicit fictional entries without expanding what the model receives or requiring an emotional disclosure.
 
 **Decision:** Add a separate SQLite journal table and a Vue Journal page. Store only the voluntarily entered body and timestamp, show the latest 12 entries, never send journal text to the model, and do not save limited potentially urgent wording.
+
+## Common chatbot questions
+
+> Add reliable common questions about the website without needing the language model to invent factual details.
+
+**Decision:** Add visible question buttons in the chatbot and map their exact prompts to local scripted answers. The factual answers cover scope, breathing timing, stopping, saved data, journal separation, and profile behavior; they do not call the model.

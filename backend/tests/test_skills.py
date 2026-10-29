@@ -151,6 +151,20 @@ class SkillsCompanionControllerTests(unittest.TestCase):
             "Thanks for the fictional note. Rest may be one choice to consider; you can choose what happens next.",
         )
 
+    def test_common_website_question_uses_a_local_factual_answer(self) -> None:
+        llm = FakeLlmClient()
+
+        response = SkillsCompanionController(self.store, llm).respond(
+            self.session.id, "Does the chatbot read my journal?"
+        )
+
+        self.assertEqual(llm.calls, [])
+        self.assertEqual(response.model, "local scripted response")
+        self.assertEqual(
+            response.message,
+            "No. Journal entries stay separate in local SQLite and are never sent to the chatbot or model.",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
