@@ -38,6 +38,8 @@ The proposed 5–4–3–2–1 grounding design from Part 3.1 is intentionally d
 
 The model is optional and backend-only. After a **completed** session, someone may send a short fictional message to the coursework chatbot. FastAPI sends only the skill identifier, completion state, message, explicit optional profile choices, and total number of completed paced-breathing sessions to request one neutral acknowledgment under 120 characters. The application rejects replies that are too long or include diagnostic, therapeutic, medical, crisis, or directive language and replaces them with a fixed local response.
 
+One presentation-safe local script handles the exact fictional message `I am tired` before any model call: “Thanks for the fictional note. Rest may be one choice to consider; you can choose what happens next.” It demonstrates a deterministic response while avoiding a universal sleep target or health instruction.
+
 The model cannot change the breathing sequence, operate the timer, select a skill, prevent an exit, write SQLite directly, or provide the crisis route. The frontend catches provider/configuration failures and leaves the completed practice intact. A narrow local phrase check prevents limited potential-crisis text from being saved or transmitted; it creates only a generic safety event. This check is not a distress detector: it can miss wording and over-match fictional text.
 
 ## Persistent records

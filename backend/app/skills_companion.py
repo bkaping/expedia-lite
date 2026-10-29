@@ -17,6 +17,9 @@ UNSAFE_REPLY_PATTERN = re.compile(
     re.IGNORECASE,
 )
 FALLBACK_REPLY = "Your fictional note is saved with this practice. You can choose what happens next."
+SCRIPTED_REPLIES = {
+    "i am tired": "Thanks for the fictional note. Rest may be one choice to consider; you can choose what happens next.",
+}
 
 
 class SkillsCompanionController:
@@ -46,6 +49,13 @@ class SkillsCompanionController:
             )
 
         self.skills_controller.save_message(session_id, "user", cleaned_message)
+        scripted_reply = SCRIPTED_REPLIES.get(cleaned_message.casefold().rstrip(".!?"))
+        if scripted_reply:
+            self.skills_controller.save_message(
+                session_id, "assistant", scripted_reply, "local scripted response"
+            )
+            return CompanionResponse(mode="reply", message=scripted_reply, model="local scripted response")
+
         profile = self.skills_controller.profile()
         completed_count = self.skills_controller.completed_practice_count()
         profile_summary = (

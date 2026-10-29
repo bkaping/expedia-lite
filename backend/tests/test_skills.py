@@ -124,6 +124,18 @@ class SkillsCompanionControllerTests(unittest.TestCase):
         self.assertEqual(response.model, "local safety fallback")
         self.assertIn("You can choose", response.message)
 
+    def test_tired_fictional_message_uses_a_local_non_directive_reply(self) -> None:
+        llm = FakeLlmClient()
+
+        response = SkillsCompanionController(self.store, llm).respond(self.session.id, "I am tired.")
+
+        self.assertEqual(llm.calls, [])
+        self.assertEqual(response.model, "local scripted response")
+        self.assertEqual(
+            response.message,
+            "Thanks for the fictional note. Rest may be one choice to consider; you can choose what happens next.",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -43,3 +43,9 @@ This curated record excludes credentials, personal information, real distress di
 > Add a demonstrable user profile without collecting emotional, health, or inferred-state data. Make every profile setting optional, editable, and resettable. Let the interface and a bounded post-practice chatbot use only explicit profile choices and neutral usage history; do not change a canonical skill step.
 
 **Decision:** Store only an optional display name, cue-style selection, and practice-aim selection in local SQLite. The home screen adapts its greeting and cue explanation; the latest completed skill remains an optional repeat shortcut. The backend chatbot receives those explicit choices and a completed-practice count only after a completed skill, while the frontend labels its scope and limitations clearly.
+
+## Deterministic chatbot example
+
+> Add one presentation-ready response for the exact fictional phrase `I am tired`, while preserving the coursework chatbot's non-directive, non-medical limits.
+
+**Decision:** Handle the exact phrase locally before a model request with “Thanks for the fictional note. Rest may be one choice to consider; you can choose what happens next.” Do not prescribe a sleep duration or imply health guidance.

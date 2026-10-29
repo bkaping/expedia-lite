@@ -4,7 +4,7 @@ All scenarios below are fictional. Automated checks use a fake model; the one br
 
 ## Automated checks
 
-`python3 -m unittest discover -s backend/tests -v` passed **17 tests** on October 29, 2026. The suite includes the preserved Assignment 2 tests and six focused Stillpoint tests:
+`python3 -m unittest discover -s backend/tests -v` passed **18 tests** on October 29, 2026. The suite includes the preserved Assignment 2 tests and seven focused Stillpoint tests:
 
 | Check | Expected / observed result |
 | --- | --- |
@@ -13,6 +13,7 @@ All scenarios below are fictional. Automated checks use a fake model; the one br
 | Ordinary fictional note | Fake model receives the completed skill context; user note and bounded reply persist. |
 | Potential-crisis phrase | Fake model receives zero calls; only a generic system record is stored, not the phrase. |
 | Unsafe model reply | “You should seek therapy” is replaced with the local safety fallback. |
+| Scripted tired message | Exact fictional message `I am tired` receives a local non-directive reply; the fake model receives zero calls. |
 | Optional profile | A display name, cue style, and practice aim persist in SQLite, appear in history data, and can be reset to defaults. |
 | Chatbot context | The fake model receives only explicit profile choices plus the completed-practice count; the response and fictional message persist. |
 
