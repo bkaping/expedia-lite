@@ -3,13 +3,14 @@ import './style.css'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? ''
 const EMPTY_PROFILE = () => ({ display_name: null, cue_style: null, practice_aim: null, updated_at: null })
-const CHATBOT_PROMPTS = [
-  'What is Stillpoint?',
-  'How does paced breathing work?',
-  'Can I stop a practice?',
-  'What information is saved?',
-  'Does the chatbot read my journal?',
-  'How does my profile change the app?',
+const CHATBOT_QUESTIONS = [
+  { id: 'about', label: 'What is Stillpoint?' },
+  { id: 'breathing_timing', label: 'How does paced breathing work?' },
+  { id: 'stopping', label: 'Can I stop a practice?' },
+  { id: 'saved_data', label: 'What information is saved?' },
+  { id: 'journal_privacy', label: 'Does the chatbot read my journal?' },
+  { id: 'profile_adaptation', label: 'How does my profile change the app?' },
+  { id: 'my_setup', label: 'What is my saved setup?' },
 ]
 const SKILL = {
   id: 'paced_breathing',
@@ -29,18 +30,19 @@ const errorMessage = async (response) => {
 const App = {
   setup() {
     const screen = ref('home')
-    const history = ref({ usual_skill_id: null, completed_practice_count: 0, profile: EMPTY_PROFILE(), sessions: [], messages: [] })
+    const history = ref({ usual_skill_id: null, completed_practice_count: 0, profile: EMPTY_PROFILE(), sessions: [] })
     const currentSession = ref(null)
     const stage = ref('ready')
     const loadingHistory = ref(false)
     const problem = ref('')
     const crisisOpen = ref(false)
     const chatbotOpen = ref(false)
-    const reflectionText = ref('')
-    const reflectionResult = ref(null)
-    const reflectionLoading = ref(false)
+    const chatbotResult = ref(null)
+    const chatbotLoading = ref(false)
     const breathElapsed = ref(0)
     const breathRunning = ref(false)
+    const breathingMode = ref('automatic')
+    const manualHolding = ref(false)
     const profileDraft = ref({ display_name: '', cue_style: '', practice_aim: '' })
     const profileLoading = ref(false)
     const profileStatus = ref('')
@@ -61,10 +63,6 @@ const App = {
         : { text: 'Breathe out', count: 10 - second, direction: 'out' }
     })
     const hasUsualSkill = computed(() => history.value.usual_skill_id === SKILL.id)
-    const chatSession = computed(() => {
-      if (currentSession.value?.outcome === 'completed') return currentSession.value
-      return history.value.sessions.find((session) => session.outcome === 'completed') ?? null
-    })
     const profile = computed(() => history.value.profile ?? EMPTY_PROFILE())
     const profileName = computed(() => profile.value.display_name || '')
     const completedCount = computed(() => history.value.completed_practice_count ?? 0)
@@ -154,7 +152,7 @@ const App = {
 
     const openChatbot = async () => {
       problem.value = ''
-      reflectionResult.value = null
+      chatbotResult.value = null
       await loadHistory()
       chatbotOpen.value = true
     }
@@ -224,7 +222,7 @@ const App = {
 
     const beginSession = async (source = 'chosen') => {
       problem.value = ''
-      reflectionResult.value = null
+      chatbotResult.value = null
       try {
         const response = await fetch(`${API_BASE_URL}/api/sessions`, {
           method: 'POST',
@@ -235,6 +233,7 @@ const App = {
         currentSession.value = await response.json()
         elapsedMs = 0
         breathElapsed.value = 0
+        manualHolding.value = false
         stage.value = 'ready'
         screen.value = 'practice'
       } catch (error) {
@@ -242,8 +241,8 @@ const App = {
       }
     }
 
-    const stopTimer = () => {
-      if (breathRunning.value) elapsedMs += Date.now() - runningSince
+    const stopTimer = (elapsedAtStop = null) => {
+      if (breathRunning.value) elapsedMs = elapsedAtStop ?? elapsedMs + Date.now() - runningSince
       breathRunning.value = false
       window.clearInterval(timerId)
       timerId = undefined
@@ -253,6 +252,7 @@ const App = {
     const finishPractice = async (outcome, activeSeconds) => {
       if (!currentSession.value || currentSession.value.outcome !== 'active') return false
       stopTimer()
+      manualHolding.value = false
       problem.value = ''
       try {
         const response = await fetch(`${API_BASE_URL}/api/sessions/${currentSession.value.id}/finish`, {
@@ -275,27 +275,50 @@ const App = {
       const totalMs = elapsedMs + (breathRunning.value ? Date.now() - runningSince : 0)
       breathElapsed.value = Math.min(60, Math.floor(totalMs / 1000))
       if (totalMs >= 60_000) {
-        stopTimer()
+        stopTimer(60_000)
+        manualHolding.value = false
         void finishPractice('completed', 60)
+        return
       }
+      if (breathingMode.value === 'tap_hold') {
+        const cycleStart = totalMs - (totalMs % 10_000)
+        const phaseEndsAt = cycleStart + (totalMs % 10_000 < 4_000 ? 4_000 : 10_000)
+        if (totalMs >= phaseEndsAt) {
+          stopTimer(phaseEndsAt)
+          manualHolding.value = false
+        }
+      }
+    }
+
+    const startTimer = () => {
+      runningSince = Date.now()
+      breathRunning.value = true
+      timerId = window.setInterval(updateTimer, 200)
+      updateTimer()
     }
 
     const startBreathing = () => {
       stage.value = 'active'
-      runningSince = Date.now()
-      breathRunning.value = true
-      timerId = window.setInterval(updateTimer, 200)
-      updateTimer()
+      if (breathingMode.value === 'automatic') startTimer()
     }
 
     const resumeBreathing = () => {
-      runningSince = Date.now()
-      breathRunning.value = true
-      timerId = window.setInterval(updateTimer, 200)
-      updateTimer()
+      if (breathingMode.value === 'automatic') startTimer()
     }
 
     const pauseBreathing = () => stopTimer()
+
+    const startManualHold = () => {
+      if (breathingMode.value !== 'tap_hold' || stage.value !== 'active' || manualHolding.value) return
+      manualHolding.value = true
+      startTimer()
+    }
+
+    const stopManualHold = () => {
+      if (breathingMode.value !== 'tap_hold' || !manualHolding.value) return
+      manualHolding.value = false
+      stopTimer()
+    }
 
     const leavePractice = () => {
       const activeSeconds = breathElapsed.value
@@ -314,41 +337,23 @@ const App = {
       stage.value = 'ready'
     }
 
-    const sendReflection = async () => {
-      const message = reflectionText.value.trim()
-      const targetSession = chatSession.value
-      reflectionResult.value = null
+    const askChatbotQuestion = async (questionId) => {
+      chatbotResult.value = null
       problem.value = ''
-      if (!targetSession) {
-        problem.value = 'Complete a fictional practice before using the coursework chatbot.'
-        return
-      }
-      if (!message) {
-        problem.value = 'Enter a short fictional message, or leave this optional step.'
-        return
-      }
-      reflectionLoading.value = true
+      chatbotLoading.value = true
       try {
-        const response = await fetch(`${API_BASE_URL}/api/conversations`, {
+        const response = await fetch(`${API_BASE_URL}/api/chatbot/questions`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ session_id: targetSession.id, message }),
+          body: JSON.stringify({ question_id: questionId }),
         })
         if (!response.ok) throw new Error(await errorMessage(response))
-        reflectionResult.value = await response.json()
-        reflectionText.value = ''
-        if (reflectionResult.value.mode === 'safety_route') crisisOpen.value = true
-        await loadHistory()
+        chatbotResult.value = await response.json()
       } catch (error) {
-        problem.value = error.message || 'The optional coursework chatbot is unavailable. The practice is still saved.'
+        problem.value = error.message || 'The coursework chatbot is unavailable. The practice is still available.'
       } finally {
-        reflectionLoading.value = false
+        chatbotLoading.value = false
       }
-    }
-
-    const askChatbotPrompt = async (prompt) => {
-      reflectionText.value = prompt
-      await sendReflection()
     }
 
     const showHistory = async () => {
@@ -366,14 +371,16 @@ const App = {
 
     return {
       SKILL,
-      CHATBOT_PROMPTS,
+      CHATBOT_QUESTIONS,
       aimCopy,
-      askChatbotPrompt,
+      askChatbotQuestion,
       beginSession,
       breathElapsed,
       breathRunning,
+      breathingMode,
+      chatbotLoading,
       chatbotOpen,
-      chatSession,
+      chatbotResult,
       completedCount,
       crisisOpen,
       cueCopy,
@@ -389,6 +396,7 @@ const App = {
       leavePractice,
       loadingHistory,
       loadJournal,
+      manualHolding,
       openChatbot,
       pauseBreathing,
       phase,
@@ -398,20 +406,18 @@ const App = {
       profileLoading,
       profileName,
       profileStatus,
-      reflectionLoading,
-      reflectionResult,
-      reflectionText,
       remaining,
       resumeBreathing,
       screen,
       saveProfile,
       saveJournal,
-      sendReflection,
       showHistory,
       showJournal,
       showProfile,
       stage,
       startBreathing,
+      startManualHold,
+      stopManualHold,
       resetProfile,
     }
   },
@@ -464,8 +470,15 @@ const App = {
 
         <section v-if="stage === 'ready'" class="exercise-card ready-card">
           <p class="instruction">The next screen begins the 60-second practice.</p>
-          <p class="quiet-copy">You may pause or leave at any time. Nothing needs to be explained or completed.</p>
-          <button class="primary" type="button" @click="startBreathing">Begin practice</button>
+          <fieldset class="pacing-control">
+            <legend>Choose a pacing control</legend>
+            <label><input v-model="breathingMode" type="radio" value="automatic"> Automatic visual timing</label>
+            <p class="quiet-copy">The orb and count move through each four-count inhale and six-count exhale.</p>
+            <label><input v-model="breathingMode" type="radio" value="tap_hold"> Tap-and-hold pacing</label>
+            <p class="quiet-copy">Press and hold once for each inhale or exhale; releasing pauses that part of the count.</p>
+          </fieldset>
+          <p class="quiet-copy">Both controls use the same fixed 4-in / 6-out sequence. You may pause or leave at any time.</p>
+          <button class="primary" type="button" @click="startBreathing">{{ breathingMode === 'automatic' ? 'Begin automatic timing' : 'Begin tap-and-hold pacing' }}</button>
           <button class="text-button" type="button" @click="leavePractice">Leave this practice</button>
         </section>
 
@@ -473,10 +486,16 @@ const App = {
           <p class="timer-copy">{{ remaining }} seconds remaining</p>
           <div class="breath-orb" :class="'phase-' + phase.direction" aria-hidden="true"><span>{{ phase.count }}</span></div>
           <p class="breath-label" aria-live="polite">{{ phase.text }}</p>
-          <p v-if="breathRunning" class="quiet-copy">Follow the count if it feels useful.</p>
-          <p v-else class="quiet-copy">The timer is paused. Continue only if you want to.</p>
-          <button v-if="breathRunning" class="quiet-button" type="button" @click="pauseBreathing">Pause</button>
-          <button v-else class="primary" type="button" @click="resumeBreathing">Continue when ready</button>
+          <template v-if="breathingMode === 'automatic'">
+            <p v-if="breathRunning" class="quiet-copy">Follow the count if it feels useful.</p>
+            <p v-else class="quiet-copy">The timer is paused. Continue only if you want to.</p>
+            <button v-if="breathRunning" class="quiet-button" type="button" @click="pauseBreathing">Pause</button>
+            <button v-else class="primary" type="button" @click="resumeBreathing">Continue when ready</button>
+          </template>
+          <template v-else>
+            <p class="quiet-copy">{{ manualHolding ? 'Keep holding until this count finishes. Release to pause.' : 'Press and hold to continue this count. Each hold completes one inhale or exhale.' }}</p>
+            <button class="manual-hold" type="button" :aria-pressed="manualHolding" @pointerdown.prevent="startManualHold" @pointerup="stopManualHold" @pointercancel="stopManualHold" @pointerleave="stopManualHold" @keydown.space.prevent="startManualHold" @keyup.space.prevent="stopManualHold" @keydown.enter.prevent="startManualHold" @keyup.enter.prevent="stopManualHold">{{ manualHolding ? 'Holding ' + phase.text + '…' : 'Press and hold: ' + phase.text }}</button>
+          </template>
           <button class="text-button" type="button" @click="leavePractice">End this practice</button>
         </section>
 
@@ -484,14 +503,6 @@ const App = {
           <p class="eyebrow">{{ currentSession.outcome === 'completed' ? 'PRACTICE SAVED' : 'PRACTICE ENDED' }}</p>
           <h2>{{ currentSession.outcome === 'completed' ? 'This practice is marked complete.' : 'You chose to stop. Nothing else is required.' }}</h2>
           <p class="quiet-copy">Active time recorded: {{ currentSession.active_seconds }} seconds.</p>
-          <form v-if="currentSession.outcome === 'completed'" class="companion-form" @submit.prevent="sendReflection">
-            <p class="eyebrow">OPTIONAL COURSEWORK CHATBOT</p>
-            <label for="fictional-note">Send a fictional message after this completed practice</label>
-            <textarea id="fictional-note" v-model="reflectionText" maxlength="320" placeholder="Example: I followed the fictional count."></textarea>
-            <p class="quiet-copy">The chatbot receives this fictional message plus your explicit profile choices and completed-practice count. It can only return one short acknowledgment. It cannot change this practice or provide therapeutic advice.</p>
-            <button class="quiet-button" type="submit" :disabled="reflectionLoading">{{ reflectionLoading ? 'Sending…' : 'Send to coursework chatbot' }}</button>
-          </form>
-          <p v-if="reflectionResult" class="notice" :class="{ warning: reflectionResult.mode === 'safety_route' }" aria-live="polite"><strong>{{ reflectionResult.mode === 'reply' ? 'Coursework chatbot' : 'Safety handling' }}:</strong> {{ reflectionResult.message }}</p>
           <button class="primary" type="button" @click="goHome">Choose a practice</button>
         </section>
       </section>
@@ -517,12 +528,12 @@ const App = {
             <label><input v-model="profileDraft.practice_aim" type="radio" value="one_short_practice"> Complete one short practice</label>
             <label><input v-model="profileDraft.practice_aim" type="radio" value="review_pattern"> Review the 4-in / 6-out pattern</label>
           </fieldset>
-          <p class="quiet-copy">Saved locally: only this nickname, selected cue style, and selected practice aim. The activity history separately stores neutral timing/outcome records and optional fictional chatbot messages.</p>
+          <p class="quiet-copy">Saved locally: only this nickname, selected cue style, selected practice aim, and neutral timing/outcome records. The chatbot does not store messages.</p>
           <div class="profile-actions"><button class="primary" type="submit" :disabled="profileLoading">{{ profileLoading ? 'Saving…' : 'Save profile' }}</button><button class="quiet-button" type="button" :disabled="profileLoading" @click="resetProfile">Reset to defaults</button></div>
         </form>
         <section class="profile-context" aria-labelledby="usage-heading">
           <h2 id="usage-heading">What the app adapts</h2>
-          <p>It changes the greeting and cue explanation from your saved choices. It may offer your latest completed skill as an optional repeat shortcut. The coursework chatbot receives only your explicit profile choices and the count of completed practices—not a diagnosis, score, or inferred emotional state.</p>
+          <p>It changes the greeting and cue explanation from your saved choices. It may offer your latest completed skill as an optional repeat shortcut. The factual chatbot can summarize only your explicit profile choices and completed-practice count—not a diagnosis, score, or inferred emotional state.</p>
         </section>
       </section>
 
@@ -550,7 +561,7 @@ const App = {
       <section v-else class="history-view" aria-labelledby="history-heading">
         <p class="eyebrow">LOCAL SQLITE RECORD</p>
         <h1 id="history-heading">Saved practice history</h1>
-        <p class="lede">This local review shows recent practice sessions and optional fictional chatbot messages. It does not score or diagnose you.</p>
+        <p class="lede">This local review shows recent practice sessions. It does not score or diagnose you.</p>
         <button class="quiet-button refresh-button" type="button" :disabled="loadingHistory" @click="showHistory">{{ loadingHistory ? 'Refreshing…' : 'Refresh history' }}</button>
         <p v-if="problem" class="notice problem" role="alert">{{ problem }}</p>
         <section class="history-section" aria-labelledby="sessions-heading">
@@ -558,13 +569,6 @@ const App = {
           <p v-if="!history.sessions.length" class="empty-copy">No sessions are saved yet.</p>
           <ol v-else class="history-list">
             <li v-for="session in history.sessions" :key="session.id"><article class="history-card"><div><strong>Paced breathing (4–6)</strong><span>{{ formatDate(session.started_at) }} · {{ session.active_seconds ?? 0 }} active seconds · {{ session.source === 'usual_skill' ? 'optional repeat' : 'chosen' }}</span></div><span class="outcome" :class="session.outcome">{{ session.outcome }}</span></article></li>
-          </ol>
-        </section>
-        <section class="history-section" aria-labelledby="notes-heading">
-          <h2 id="notes-heading">Optional chatbot messages</h2>
-          <p v-if="!history.messages.length" class="empty-copy">No optional fictional chatbot messages are saved yet.</p>
-          <ol v-else class="message-list">
-            <li v-for="message in history.messages" :key="message.id"><article class="message-card" :class="message.role"><strong>{{ message.role === 'assistant' ? 'Coursework chatbot' : message.role === 'system' ? 'Safety handling' : 'Fictional message' }}</strong><p>{{ message.body }}</p></article></li>
           </ol>
         </section>
       </section>
@@ -585,28 +589,15 @@ const App = {
       <div v-if="chatbotOpen" class="modal-backdrop" @click.self="chatbotOpen = false">
         <section class="chat-modal" role="dialog" aria-modal="true" aria-labelledby="chatbot-heading">
           <button class="modal-close" type="button" aria-label="Close coursework chatbot" @click="chatbotOpen = false">×</button>
-          <p class="eyebrow">OPTIONAL COURSEWORK CHATBOT</p>
-          <h2 id="chatbot-heading">A brief, bounded response.</h2>
-          <p>This fictional-coursework chatbot is not a therapist and does not diagnose, assess, or direct care.</p>
-          <template v-if="chatSession">
-            <p class="quiet-copy">It can respond because a fictional practice was completed. It receives your explicit profile choices and completed-practice count only.</p>
-            <section class="suggested-prompts" aria-labelledby="common-questions-heading">
-              <h3 id="common-questions-heading">Common questions</h3>
-              <p class="quiet-copy">These factual answers are scripted locally and do not call the model.</p>
-              <div class="prompt-chips"><button v-for="prompt in CHATBOT_PROMPTS" :key="prompt" class="prompt-chip" type="button" :disabled="reflectionLoading" @click="askChatbotPrompt(prompt)">{{ prompt }}</button></div>
-            </section>
-            <form class="companion-form chat-form" @submit.prevent="sendReflection">
-              <label for="chatbot-message">Optional fictional message</label>
-              <textarea id="chatbot-message" v-model="reflectionText" maxlength="320" placeholder="Example: I followed the fictional count."></textarea>
-              <p class="quiet-copy">The response is limited to one neutral acknowledgment. It cannot change the practice, timer, saved record, or support panel.</p>
-              <button class="quiet-button" type="submit" :disabled="reflectionLoading">{{ reflectionLoading ? 'Sending…' : 'Send to chatbot' }}</button>
-            </form>
-            <p v-if="reflectionResult" class="notice" :class="{ warning: reflectionResult.mode === 'safety_route' }" aria-live="polite"><strong>{{ reflectionResult.mode === 'reply' ? 'Coursework chatbot' : 'Safety handling' }}:</strong> {{ reflectionResult.message }}</p>
-          </template>
-          <template v-else>
-            <p>Complete the fictional paced-breathing practice first. A message is never required to complete or save a practice.</p>
-            <button class="quiet-button" type="button" @click="chatbotOpen = false">Return to prototype</button>
-          </template>
+          <p class="eyebrow">COURSEWORK CHATBOT</p>
+          <h2 id="chatbot-heading">Common prototype questions.</h2>
+          <p>This is a local, factual question-and-answer panel. It does not accept free-text messages, diagnose, assess, or direct care.</p>
+          <section class="suggested-prompts" aria-labelledby="common-questions-heading">
+            <h3 id="common-questions-heading">Choose a question</h3>
+            <p class="quiet-copy">Answers are scripted locally. No language model is called, and no chatbot messages are saved.</p>
+            <div class="prompt-chips"><button v-for="question in CHATBOT_QUESTIONS" :key="question.id" class="prompt-chip" type="button" :disabled="chatbotLoading" @click="askChatbotQuestion(question.id)">{{ question.label }}</button></div>
+          </section>
+          <p v-if="chatbotResult" class="notice" aria-live="polite"><strong>Coursework chatbot:</strong> {{ chatbotResult.message }}</p>
         </section>
       </div>
     </main>

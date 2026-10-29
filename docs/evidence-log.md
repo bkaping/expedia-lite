@@ -19,5 +19,7 @@
 | 2026-10-29 | Scripted tired-message check | Added a local response for exact fictional `I am tired`; automated test confirmed it returns the non-directive script and makes zero model calls. The full backend suite now has 18 passing tests. |
 | 2026-10-29 | Local journal check | Added two focused journal tests and rechecked the full 20-test suite plus production build. In an isolated browser check, a fictional entry saved locally and appeared immediately in the Journal list. |
 | 2026-10-29 | Common-question chatbot check | Added local factual answers and visible prompt buttons for common website questions. A focused test confirmed the journal-separation answer makes zero model calls; the full suite now has 21 passing tests and the production build passed. |
+| 2026-10-29 | Fixed chatbot and pacing-control revision | Replaced the free-text/model companion with seven local factual questions and removed chatbot-message persistence. Added automatic and tap-and-hold controls for the same fixed 4-in / 6-out skill. The revised backend suite has 18 passing tests and the Vue production build passed. |
+| 2026-10-29 | Isolated browser controls check | The local factual chatbot showed all seven questions and returned the no-profile/no-history setup answer. A 1.2-second tap-and-hold advanced the timer from 60 to 59 seconds; release paused it, and ending saved a neutral stopped record with 1 active second. |
 
 This is a redacted record. It contains no credential, real distress content, participant information, or full chat transcript.

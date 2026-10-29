@@ -5,14 +5,12 @@ Stillpoint is a localhost-only coursework prototype for **fictional scenarios on
 ## Implemented Part 3.2 scope
 
 - One complete study-provided skill: paced breathing, six 4-second inhale / 6-second exhale cycles (60 active seconds).
-- A clear preparation screen, pause control, and consequence-free leave route; stopped sessions are saved with their active time.
-- A browser-local **Crisis support** panel visible on every screen. It contains current U.S. 988 call, text, and chat links and remains available if FastAPI or the model fails.
-- SQLite persistence for recent session records, an optional local profile, and explicit optional fictional chatbot messages.
+- A clear preparation screen with two controls for the same fixed sequence: automatic visual timing or tap-and-hold pacing. Both support a consequence-free leave route; stopped sessions are saved with their active time.
+- A browser-local **Crisis support** panel visible on every screen. It contains current U.S. 988 call, text, and chat links and remains available if FastAPI fails.
+- SQLite persistence for recent session records and an optional local profile.
 - An optional **Journal** page saves up to 500-character fictional entries locally in SQLite. Journal text is never sent to the chatbot or model; limited potentially urgent wording is not saved.
 - An optional profile holds only a display name, cue-style choice, and practice-aim choice. It changes the greeting and cue explanation; it can be edited or reset without completing a practice.
-- A persistent **Coursework chatbot** control opens a bounded chatbot panel. It permits a message only after a completed practice and receives only the fictional message, explicit profile choices, and completed-practice count. It cannot set skill steps, timing, exits, persistence, or crisis access; potentially urgent text is not sent to the model or stored verbatim.
-- The chatbot also provides six common-question buttons with local factual answers about the prototype, paced breathing, saved data, profile choices, journaling, and stopping a practice. Those answers make zero model calls.
-- The exact fictional message `I am tired` receives a local scripted, non-directive reply and is not sent to the model. It does not make a sleep or medical recommendation.
+- A persistent **Coursework chatbot** control opens seven fixed factual questions about the prototype. It accepts no free-text messages, stores no chatbot messages, and calls no language model. Its “What is my saved setup?” answer reads only explicit profile choices and the completed-practice count.
 - A saved-history view plus an optional “use this practice again” shortcut after a previous completion. No setup or automatic routing occurs.
 
 5–4–3–2–1 grounding remains a documented design direction, not an implemented Part 3.2 claim.
@@ -38,7 +36,7 @@ npm run dev
 
 Open the displayed Vite URL. The development server proxies `/api` to FastAPI, so the browser uses same-origin requests in local development.
 
-The skill, SQLite history, support panel, and the chatbot's pre-completion explanation work without an API key. The optional model chatbot needs `OPENROUTER_API_KEY`: copy `.env.example` to root `.env`, add the key, and restart FastAPI. Keep `.env` ignored; the browser never receives this key.
+The skill, SQLite history, support panel, and factual chatbot work without an API key. The browser never receives an LLM key.
 
 ## Verification
 
@@ -47,7 +45,7 @@ python3 -m unittest discover -s backend/tests -v
 cd frontend && npm run build
 ```
 
-The current checkout was rechecked on October 29, 2026: 21 tests passed and the production build passed. Earlier fictional browser checks completed the 60-second practice, received a bounded live chatbot reply, and displayed both records in history. The current browser check also saved and displayed a fictional local journal entry. Browser evidence, model boundaries, timing, failure behavior, and remaining limitations are documented in [the verification record](docs/assignment3-verification.md).
+The current checkout was rechecked on October 29, 2026: 18 backend tests passed and the frontend production build passed. A temporary browser check also verified all seven chatbot questions and tap-and-hold pacing. Browser evidence, timing, interaction controls, and remaining limitations are documented in [the verification record](docs/assignment3-verification.md).
 
 ## Documentation
 

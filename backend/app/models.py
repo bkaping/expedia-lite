@@ -144,15 +144,6 @@ class SkillSession(BaseModel):
     ended_at: datetime | None = None
 
 
-class ConversationMessage(BaseModel):
-    id: int
-    session_id: str
-    role: Literal["user", "assistant", "system"]
-    body: str
-    model: str | None = None
-    created_at: datetime
-
-
 class JournalEntry(BaseModel):
     id: int
     body: str
@@ -197,15 +188,22 @@ class HistoryResponse(BaseModel):
     completed_practice_count: int = Field(ge=0)
     profile: UserProfile
     sessions: list[SkillSession]
-    messages: list[ConversationMessage]
 
 
-class CompanionRequest(BaseModel):
-    session_id: str = Field(min_length=8, max_length=64)
-    message: str = Field(min_length=1, max_length=320)
+ChatbotQuestionId = Literal[
+    "about",
+    "breathing_timing",
+    "stopping",
+    "saved_data",
+    "journal_privacy",
+    "profile_adaptation",
+    "my_setup",
+]
 
 
-class CompanionResponse(BaseModel):
-    mode: Literal["reply", "safety_route"]
+class ChatbotQuestionRequest(BaseModel):
+    question_id: ChatbotQuestionId
+
+
+class ChatbotAnswerResponse(BaseModel):
     message: str
-    model: str | None = None

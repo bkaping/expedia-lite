@@ -7,8 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import FRONTEND_ORIGINS
 from .models import (
-    CompanionRequest,
-    CompanionResponse,
+    ChatbotAnswerResponse,
+    ChatbotQuestionRequest,
     FinishSkillSessionRequest,
     HistoryResponse,
     JournalEntryCreateRequest,
@@ -20,7 +20,7 @@ from .models import (
     UserProfileUpdateRequest,
 )
 from .skills import SkillSessionNotFound, SkillsController
-from .skills_companion import AssistantConfigurationError, LlmRequestError, SkillsCompanionController
+from .skills_companion import SkillsCompanionController
 
 
 skills_controller = SkillsController()
@@ -93,21 +93,6 @@ def save_journal_entry(payload: JournalEntryCreateRequest) -> JournalEntrySaveRe
     return skills_controller.save_journal_entry(payload.body)
 
 
-@app.post("/api/conversations", response_model=CompanionResponse)
-def send_companion_message(payload: CompanionRequest) -> CompanionResponse:
-    try:
-        return skills_companion_controller.respond(payload.session_id, payload.message)
-    except SkillSessionNotFound as error:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
-    except ValueError as error:
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error
-    except LlmRequestError as error:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail={"code": "companion_provider_failure", "message": str(error)},
-        ) from error
-    except AssistantConfigurationError as error:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail={"code": "companion_not_configured", "message": str(error)},
-        ) from error
+@app.post("/api/chatbot/questions", response_model=ChatbotAnswerResponse)
+def answer_chatbot_question(payload: ChatbotQuestionRequest) -> ChatbotAnswerResponse:
+    return skills_companion_controller.answer(payload.question_id)

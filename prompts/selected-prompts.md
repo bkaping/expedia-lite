@@ -14,11 +14,11 @@ This curated record excludes credentials, personal information, real distress di
 
 **Decision:** Render the dialog in Vue and use a dedicated local-safety lookup to verify the current U.S. support links before including them.
 
-## Bounded companion
+## Fixed factual chatbot
 
-> Permit the model only after a completed practice and only for an optional fictional note. Backend validation—not a system prompt alone—must reject advice, diagnosis, model-directed skill changes, and unsafe output. Potential-crisis text must not be stored or transmitted.
+> Replace free-text chatbot messages with reliable, factual questions about the prototype. Keep the chatbot honest about its limits and do not make an LLM request for these answers.
 
-**Decision:** Use a backend-only OpenRouter client, a narrow local phrase route, output limits/terms, and a fixed fallback.
+**Decision:** Provide seven visible question buttons backed by local scripts. The panel accepts no free text, stores no chatbot messages, and calls no model. One “What is my saved setup?” answer reads only explicit local profile choices and the completed-practice count.
 
 ## Browser proxy revision
 
@@ -36,19 +36,19 @@ This curated record excludes credentials, personal information, real distress di
 
 > Make the saved-history view useful for fictional evaluation without turning it into a score or asking for more disclosure.
 
-**Decision:** Each session card shows the active seconds and whether it was directly chosen or an optional repeat, alongside its neutral outcome and date. Optional notes and companion replies remain in a separate list.
+**Decision:** Each session card shows the active seconds and whether it was directly chosen or an optional repeat, alongside its neutral outcome and date. No chatbot messages are collected or shown in history.
 
-## Optional profile and bounded chatbot revision
+## Optional profile and factual chatbot revision
 
-> Add a demonstrable user profile without collecting emotional, health, or inferred-state data. Make every profile setting optional, editable, and resettable. Let the interface and a bounded post-practice chatbot use only explicit profile choices and neutral usage history; do not change a canonical skill step.
+> Add a demonstrable user profile without collecting emotional, health, or inferred-state data. Make every profile setting optional, editable, and resettable. Let the interface and a factual chatbot use only explicit profile choices and neutral usage history; do not change a canonical skill step.
 
-**Decision:** Store only an optional display name, cue-style selection, and practice-aim selection in local SQLite. The home screen adapts its greeting and cue explanation; the latest completed skill remains an optional repeat shortcut. The backend chatbot receives those explicit choices and a completed-practice count only after a completed skill, while the frontend labels its scope and limitations clearly.
+**Decision:** Store only an optional display name, cue-style selection, and practice-aim selection in local SQLite. The home screen adapts its greeting and cue explanation; the latest completed skill remains an optional repeat shortcut. The factual chatbot’s saved-setup question uses only those explicit choices and the completed-practice count.
 
-## Deterministic chatbot example
+## Pacing-control revision
 
-> Add one presentation-ready response for the exact fictional phrase `I am tired`, while preserving the coursework chatbot's non-directive, non-medical limits.
+> Provide automatic and tap-and-hold ways to control pacing without adding or changing a canonical breathing exercise.
 
-**Decision:** Handle the exact phrase locally before a model request with “Thanks for the fictional note. Rest may be one choice to consider; you can choose what happens next.” Do not prescribe a sleep duration or imply health guidance.
+**Decision:** Keep one 60-second 4-in / 6-out skill. Automatic mode advances the cue; tap-and-hold counts only while the control is held and pauses on release. Each phase still ends at four or six active seconds, so the interaction mode cannot replace or reorder the canonical steps.
 
 ## Local fictional journal
 
@@ -60,4 +60,4 @@ This curated record excludes credentials, personal information, real distress di
 
 > Add reliable common questions about the website without needing the language model to invent factual details.
 
-**Decision:** Add visible question buttons in the chatbot and map their exact prompts to local scripted answers. The factual answers cover scope, breathing timing, stopping, saved data, journal separation, and profile behavior; they do not call the model.
+**Decision:** Add visible question buttons in the chatbot and map their exact prompts to local scripted answers. The factual answers cover scope, breathing timing, stopping, saved data, journal separation, profile behavior, and the saved setup; they do not call a model or retain chatbot messages.
