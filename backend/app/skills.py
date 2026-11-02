@@ -9,6 +9,7 @@ from pathlib import Path
 
 from .config import SKILLS_DATABASE_PATH
 from .models import (
+    ConversationMessage,
     HistoryResponse,
     JournalEntry,
     JournalEntrySaveResponse,
@@ -79,6 +80,18 @@ class SkillsController:
             )
             connection.execute(
                 """
+                CREATE TABLE IF NOT EXISTS conversation_messages (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    session_id TEXT NOT NULL REFERENCES skill_sessions(id),
+                    role TEXT NOT NULL CHECK (role IN ('user', 'assistant')),
+                    body TEXT NOT NULL,
+                    model TEXT,
+                    created_at TEXT NOT NULL
+                )
+                """
+            )
+            connection.execute(
+                """
                 CREATE TABLE IF NOT EXISTS journal_entries (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     body TEXT NOT NULL,
@@ -88,6 +101,9 @@ class SkillsController:
             )
             connection.execute(
                 "CREATE INDEX IF NOT EXISTS session_history_order ON skill_sessions(started_at DESC)"
+            )
+            connection.execute(
+                "CREATE INDEX IF NOT EXISTS conversation_history_order ON conversation_messages(created_at DESC)"
             )
             connection.execute(
                 "CREATE INDEX IF NOT EXISTS journal_history_order ON journal_entries(created_at DESC)"
@@ -201,10 +217,29 @@ class SkillsController:
             raise SkillSessionNotFound("That practice session was not found.")
         return self._session_from_row(row)
 
+    def save_message(
+        self, session_id: str, role: str, body: str, model: str | None = None
+    ) -> ConversationMessage:
+        self.session(session_id)
+        created_at = datetime.now(UTC)
+        with self.connection() as connection:
+            cursor = connection.execute(
+                """INSERT INTO conversation_messages (session_id, role, body, model, created_at)
+                VALUES (?, ?, ?, ?, ?)""",
+                (session_id, role, body, model, created_at.isoformat()),
+            )
+            row = connection.execute(
+                "SELECT * FROM conversation_messages WHERE id = ?", (cursor.lastrowid,)
+            ).fetchone()
+        return self._message_from_row(row)
+
     def history(self) -> HistoryResponse:
         with self.connection() as connection:
             session_rows = connection.execute(
                 "SELECT * FROM skill_sessions ORDER BY started_at DESC LIMIT 12"
+            ).fetchall()
+            message_rows = connection.execute(
+                "SELECT * FROM conversation_messages ORDER BY created_at DESC, id DESC LIMIT 12"
             ).fetchall()
             usual_row = connection.execute(
                 """SELECT skill_id FROM skill_sessions
@@ -219,6 +254,7 @@ class SkillsController:
             completed_practice_count=int(completed_row["count"]),
             profile=self._profile_from_row(profile_row),
             sessions=[self._session_from_row(row) for row in session_rows],
+            messages=[self._message_from_row(row) for row in message_rows],
         )
 
     @staticmethod
@@ -237,6 +273,17 @@ class SkillsController:
     def _journal_entry_from_row(row: sqlite3.Row) -> JournalEntry:
         return JournalEntry(
             id=row["id"], body=row["body"], created_at=datetime.fromisoformat(row["created_at"])
+        )
+
+    @staticmethod
+    def _message_from_row(row: sqlite3.Row) -> ConversationMessage:
+        return ConversationMessage(
+            id=row["id"],
+            session_id=row["session_id"],
+            role=row["role"],
+            body=row["body"],
+            model=row["model"],
+            created_at=datetime.fromisoformat(row["created_at"]),
         )
 
     @staticmethod

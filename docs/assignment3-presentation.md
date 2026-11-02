@@ -20,7 +20,7 @@ All examples are fictional coursework scenarios. Do not describe Stillpoint as t
 
 ## 3. Persona, interaction choices, and accessibility
 
-1. Return to **My profile** and explain exactly what is saved locally in SQLite: the optional display name, cue style, practice aim, update time, sessions, and separate fictional journal entries. Open **Journal** to show that entries are never sent to a model.
+1. Return to **My profile** and explain exactly what is saved locally in SQLite: the optional display name, cue style, practice aim, update time, sessions, separate fictional journal entries, and any explicitly selected fixed model-summary prompt/reply. Open **Journal** to show that entries are never sent to a model.
 2. Explain how it updates: **Save profile** overwrites choices; **Reset to defaults** removes them. The saved history can offer—but never force—the latest completed skill as a repeat shortcut.
 3. Demonstrate keyboard use with Tab/Enter, visible focus outlines, native form controls, clear labels, and the browser's reduced-motion setting, which removes the breathing animation while retaining text/count cues.
 4. Explain why this reduces effort: defaults work with no setup; automatic and tap-and-hold controls let the person choose how to pace the same skill; no chatbot message or journal entry is required.
@@ -28,9 +28,9 @@ All examples are fictional coursework scenarios. Do not describe Stillpoint as t
 ## 4. Chatbot tone and limits
 
 1. Point out the persistent **Coursework chatbot** button beside Crisis support. Open it and choose **What information is saved?** to show a factual local answer.
-2. Then choose **What is my saved setup?** after saving the fictional profile. Explain that it reads only the optional profile choices and the completed-practice count.
-3. Describe the tone: short, factual, neutral, and nonjudgmental. It does not claim understanding, diagnosis, therapeutic authority, or medical expertise.
-4. Describe the hard limits: it accepts no free-text messages, stores no chatbot messages, and makes no language-model request. It cannot change the breathing skill, timer, exits, records, or support panel. It identifies itself honestly as a coursework prototype, not therapy or crisis care.
+2. Then choose **Create a brief practice summary** after a completed fictional practice. Explain that it is the only model-backed button and receives only session timing, explicit profile choices, and completed-practice count; it never receives journal text or an LLM key.
+3. Open **Saved history** to show the selected fixed prompt/reply pair. Explain that routine tests use a fake model; two no-profile live checks were used only to observe variation.
+4. Describe the tone and hard limits: short, factual, neutral, and nonjudgmental; no free-text messages; local fallback for failed or unsafe output; no ability to change the breathing skill, timer, exits, records, or support panel. It identifies itself honestly as a coursework prototype, not therapy or crisis care.
 
 ## Close
 

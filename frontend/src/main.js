@@ -11,6 +11,7 @@ const CHATBOT_QUESTIONS = [
   { id: 'journal_privacy', label: 'Does the chatbot read my journal?' },
   { id: 'profile_adaptation', label: 'How does my profile change the app?' },
   { id: 'my_setup', label: 'What is my saved setup?' },
+  { id: 'practice_summary', label: 'Create a brief practice summary', requiresCompleted: true },
 ]
 const SKILL = {
   id: 'paced_breathing',
@@ -30,7 +31,7 @@ const errorMessage = async (response) => {
 const App = {
   setup() {
     const screen = ref('home')
-    const history = ref({ usual_skill_id: null, completed_practice_count: 0, profile: EMPTY_PROFILE(), sessions: [] })
+    const history = ref({ usual_skill_id: null, completed_practice_count: 0, profile: EMPTY_PROFILE(), sessions: [], messages: [] })
     const currentSession = ref(null)
     const stage = ref('ready')
     const loadingHistory = ref(false)
@@ -63,6 +64,10 @@ const App = {
         : { text: 'Breathe out', count: 10 - second, direction: 'out' }
     })
     const hasUsualSkill = computed(() => history.value.usual_skill_id === SKILL.id)
+    const chatSession = computed(() => {
+      if (currentSession.value?.outcome === 'completed') return currentSession.value
+      return history.value.sessions.find((session) => session.outcome === 'completed') ?? null
+    })
     const profile = computed(() => history.value.profile ?? EMPTY_PROFILE())
     const profileName = computed(() => profile.value.display_name || '')
     const completedCount = computed(() => history.value.completed_practice_count ?? 0)
@@ -337,18 +342,26 @@ const App = {
       stage.value = 'ready'
     }
 
-    const askChatbotQuestion = async (questionId) => {
+    const askChatbotQuestion = async (question) => {
       chatbotResult.value = null
       problem.value = ''
+      if (question.requiresCompleted && !chatSession.value) {
+        problem.value = 'Complete a fictional practice before requesting the optional model summary.'
+        return
+      }
       chatbotLoading.value = true
       try {
         const response = await fetch(`${API_BASE_URL}/api/chatbot/questions`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question_id: questionId }),
+          body: JSON.stringify({
+            question_id: question.id,
+            session_id: question.requiresCompleted ? chatSession.value.id : null,
+          }),
         })
         if (!response.ok) throw new Error(await errorMessage(response))
         chatbotResult.value = await response.json()
+        if (chatbotResult.value.mode !== 'local') await loadHistory()
       } catch (error) {
         problem.value = error.message || 'The coursework chatbot is unavailable. The practice is still available.'
       } finally {
@@ -381,6 +394,7 @@ const App = {
       chatbotLoading,
       chatbotOpen,
       chatbotResult,
+      chatSession,
       completedCount,
       crisisOpen,
       cueCopy,
@@ -528,12 +542,12 @@ const App = {
             <label><input v-model="profileDraft.practice_aim" type="radio" value="one_short_practice"> Complete one short practice</label>
             <label><input v-model="profileDraft.practice_aim" type="radio" value="review_pattern"> Review the 4-in / 6-out pattern</label>
           </fieldset>
-          <p class="quiet-copy">Saved locally: only this nickname, selected cue style, selected practice aim, and neutral timing/outcome records. The chatbot does not store messages.</p>
+          <p class="quiet-copy">Saved locally: only this nickname, selected cue style, selected practice aim, neutral timing/outcome records, and an optional selected model-summary exchange. The factual chatbot questions are not saved.</p>
           <div class="profile-actions"><button class="primary" type="submit" :disabled="profileLoading">{{ profileLoading ? 'Saving…' : 'Save profile' }}</button><button class="quiet-button" type="button" :disabled="profileLoading" @click="resetProfile">Reset to defaults</button></div>
         </form>
         <section class="profile-context" aria-labelledby="usage-heading">
           <h2 id="usage-heading">What the app adapts</h2>
-          <p>It changes the greeting and cue explanation from your saved choices. It may offer your latest completed skill as an optional repeat shortcut. The factual chatbot can summarize only your explicit profile choices and completed-practice count—not a diagnosis, score, or inferred emotional state.</p>
+          <p>It changes the greeting and cue explanation from your saved choices. It may offer your latest completed skill as an optional repeat shortcut. The chatbot uses only your explicit profile choices, completed-practice count, and completed-session timing—not a diagnosis, score, journal, or inferred emotional state.</p>
         </section>
       </section>
 
@@ -561,7 +575,7 @@ const App = {
       <section v-else class="history-view" aria-labelledby="history-heading">
         <p class="eyebrow">LOCAL SQLITE RECORD</p>
         <h1 id="history-heading">Saved practice history</h1>
-        <p class="lede">This local review shows recent practice sessions. It does not score or diagnose you.</p>
+        <p class="lede">This local review shows recent practice sessions and any selected model-summary exchanges. It does not score or diagnose you.</p>
         <button class="quiet-button refresh-button" type="button" :disabled="loadingHistory" @click="showHistory">{{ loadingHistory ? 'Refreshing…' : 'Refresh history' }}</button>
         <p v-if="problem" class="notice problem" role="alert">{{ problem }}</p>
         <section class="history-section" aria-labelledby="sessions-heading">
@@ -569,6 +583,13 @@ const App = {
           <p v-if="!history.sessions.length" class="empty-copy">No sessions are saved yet.</p>
           <ol v-else class="history-list">
             <li v-for="session in history.sessions" :key="session.id"><article class="history-card"><div><strong>Paced breathing (4–6)</strong><span>{{ formatDate(session.started_at) }} · {{ session.active_seconds ?? 0 }} active seconds · {{ session.source === 'usual_skill' ? 'optional repeat' : 'chosen' }}</span></div><span class="outcome" :class="session.outcome">{{ session.outcome }}</span></article></li>
+          </ol>
+        </section>
+        <section class="history-section" aria-labelledby="chat-history-heading">
+          <h2 id="chat-history-heading">Selected model summaries</h2>
+          <p v-if="!history.messages.length" class="empty-copy">No model summaries are saved yet.</p>
+          <ol v-else class="message-list">
+            <li v-for="message in history.messages" :key="message.id"><article class="message-card" :class="message.role"><strong>{{ message.role === 'assistant' ? 'Coursework chatbot' : 'Selected prompt' }}</strong><p>{{ message.body }}</p></article></li>
           </ol>
         </section>
       </section>
@@ -591,13 +612,14 @@ const App = {
           <button class="modal-close" type="button" aria-label="Close coursework chatbot" @click="chatbotOpen = false">×</button>
           <p class="eyebrow">COURSEWORK CHATBOT</p>
           <h2 id="chatbot-heading">Common prototype questions.</h2>
-          <p>This is a local, factual question-and-answer panel. It does not accept free-text messages, diagnose, assess, or direct care.</p>
+          <p>This is a coursework question-and-answer panel. It does not accept free-text messages, diagnose, assess, or direct care.</p>
           <section class="suggested-prompts" aria-labelledby="common-questions-heading">
             <h3 id="common-questions-heading">Choose a question</h3>
-            <p class="quiet-copy">Answers are scripted locally. No language model is called, and no chatbot messages are saved.</p>
-            <div class="prompt-chips"><button v-for="question in CHATBOT_QUESTIONS" :key="question.id" class="prompt-chip" type="button" :disabled="chatbotLoading" @click="askChatbotQuestion(question.id)">{{ question.label }}</button></div>
+            <p class="quiet-copy">Website questions are scripted locally. After a completed fictional practice, the optional summary sends only its timing, cue/aim selections, and completed-practice count to the backend model; it never sends your display name, journal text, or free text. That selected exchange is saved for review.</p>
+            <div class="prompt-chips"><button v-for="question in CHATBOT_QUESTIONS" :key="question.id" class="prompt-chip" type="button" :disabled="chatbotLoading || (question.requiresCompleted && !chatSession)" @click="askChatbotQuestion(question)">{{ question.label }}</button></div>
           </section>
-          <p v-if="chatbotResult" class="notice" aria-live="polite"><strong>Coursework chatbot:</strong> {{ chatbotResult.message }}</p>
+          <p v-if="!chatSession" class="quiet-copy">Complete a fictional practice to enable the optional model summary. All factual questions are available now.</p>
+          <p v-if="chatbotResult" class="notice" :class="{ warning: chatbotResult.mode === 'fallback' }" aria-live="polite"><strong>{{ chatbotResult.mode === 'model' ? 'Coursework chatbot (model)' : chatbotResult.mode === 'fallback' ? 'Coursework chatbot (local fallback)' : 'Coursework chatbot' }}:</strong> {{ chatbotResult.message }}</p>
         </section>
       </div>
     </main>

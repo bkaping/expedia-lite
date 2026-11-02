@@ -95,4 +95,9 @@ def save_journal_entry(payload: JournalEntryCreateRequest) -> JournalEntrySaveRe
 
 @app.post("/api/chatbot/questions", response_model=ChatbotAnswerResponse)
 def answer_chatbot_question(payload: ChatbotQuestionRequest) -> ChatbotAnswerResponse:
-    return skills_companion_controller.answer(payload.question_id)
+    try:
+        return skills_companion_controller.answer(payload.question_id, payload.session_id)
+    except SkillSessionNotFound as error:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(error)) from error
+    except ValueError as error:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error

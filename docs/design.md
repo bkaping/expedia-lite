@@ -11,13 +11,14 @@ flowchart TD
   C --> D[60 active seconds\n4 in / 6 out × 6]
   D --> E[Complete or stop]
   E --> F[SQLite session record]
-  A --> G[Fixed local chatbot questions]
+  A --> G[Fixed chatbot questions]
   F --> G
+  G --> I[Optional fixed model summary\nafter completion]
   A -. static browser route .-> H[Crisis-support panel]
   B -. static browser route .-> H
   C -. static browser route .-> H
   D -. static browser route .-> H
-  G -. static browser route .-> H
+  I -. static browser route .-> H
 ```
 
 The proposed 5–4–3–2–1 grounding design from Part 3.1 is intentionally deferred. It is not shown as an available skill, so the running interface does not claim to support it.
@@ -36,18 +37,18 @@ The proposed 5–4–3–2–1 grounding design from Part 3.1 is intentionally d
 
 ## Chatbot boundaries
 
-The coursework chatbot is a local, fixed question-and-answer panel: it has no free-text input, makes no language-model request, and stores no chatbot messages. Its scripted questions cover scope, breathing timing, stopping, saved data, journal separation, and profile behavior. A seventh “What is my saved setup?” answer reads only explicit local profile choices and the completed-practice count.
+The coursework chatbot has fixed buttons rather than free-text input. Seven website questions are local and deterministic. After a completed fictional practice, one explicit “Create a brief practice summary” button may call the backend model. Its context contains only the completed session’s skill/timing, selected cue/aim choices, and completed-practice count; it never includes a display name, journal entry, typed disclosure, crisis text, or an LLM key. The selected prompt/reply pair is saved locally so it can be reviewed in history.
 
-The chatbot cannot change the breathing sequence, operate the timer, select a skill, prevent an exit, write SQLite, or provide the crisis route. It does not claim therapeutic authority, diagnosis, medical expertise, or crisis care. The independent browser support panel remains available whether FastAPI is running or not.
+The model may return one factual, neutral sentence under 120 characters. Backend validation rejects diagnostic, therapeutic, medical, crisis, directive, or overlong output and saves a local fallback if the model is unconfigured, fails, or is unsafe. The chatbot cannot change the breathing sequence, operate the timer, select a skill, prevent an exit, write SQLite directly, or provide the crisis route. It does not claim therapeutic authority, diagnosis, medical expertise, or crisis care. The independent browser support panel remains available whether FastAPI or the model succeeds or fails.
 
 ## Persistent records
 
-`user_profile` stores at most an explicit optional display name (24 characters), selected cue style (`brief` or `step_by_step`), selected practice aim (`one_short_practice` or `review_pattern`), and update timestamp. The person may edit or reset all fields. `skill_sessions` stores an opaque ID, `paced_breathing`, source (`chosen` or `usual_skill`), outcome (`active`, `completed`, or `stopped`), active seconds, and timestamps. The history view displays the newest 12 sessions with their active time and source. The chatbot stores no prompts or answers. There is no account, score, diagnosis, location, inferred distress level, or stored potential-crisis text.
+`user_profile` stores at most an explicit optional display name (24 characters), selected cue style (`brief` or `step_by_step`), selected practice aim (`one_short_practice` or `review_pattern`), and update timestamp. The person may edit or reset all fields. `skill_sessions` stores an opaque ID, `paced_breathing`, source (`chosen` or `usual_skill`), outcome (`active`, `completed`, or `stopped`), active seconds, and timestamps. `conversation_messages` stores only the selected fixed model-summary prompt, the returned/fallback reply, model identifier, session ID, and timestamp. The history view displays the newest 12 sessions and 12 selected-summary messages. There is no account, score, diagnosis, location, inferred distress level, free-text chatbot input, or stored potential-crisis text.
 
 `journal_entries` stores only an explicit optional fictional journal body (maximum 500 characters) and timestamp; the Journal page shows the latest 12. It is a separate local record: journal text is never sent to the chatbot or model and cannot influence the fixed skill, profile, or personalization. A narrow phrase rule prevents limited potential-crisis wording from being saved, just as it prevents that text from reaching the chatbot. It is a routing guard, not a distress detector.
 
 ## Observed timing and scope change
 
-In the October 15 browser check, a full practice completed with **60 active seconds**. A leave-before-begin path recorded `stopped` with **0 seconds** and appeared in history. On October 29, the current build was rechecked: navigating from an active practice to Saved history first recorded a neutral stopped session. The current scope replaces the earlier free-text model companion with fixed local questions. Details are in [the verification record](assignment3-verification.md).
+In the October 15 browser check, a full practice completed with **60 active seconds**. A leave-before-begin path recorded `stopped` with **0 seconds** and appeared in history. On November 2, the current build used fixed local questions plus a selected model-summary button: two no-profile 60-second fictional summaries returned different provider/model outputs that stayed factual and within the local output checks. Details are in [the verification record](assignment3-verification.md) and [evaluation](assignment3-evaluation.md).
 
-Part 3.2 does not yet include 5–4–3–2–1 grounding, the 15-scenario evaluation, peer testing, or the Part 3.3 process screencast.
+5–4–3–2–1 grounding remains deferred. The 15-scenario evaluation is documented, while peer usability testing and the required finished-demo/process recordings remain intentionally unclaimed until recorded.

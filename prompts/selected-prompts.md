@@ -14,11 +14,11 @@ This curated record excludes credentials, personal information, real distress di
 
 **Decision:** Render the dialog in Vue and use a dedicated local-safety lookup to verify the current U.S. support links before including them.
 
-## Fixed factual chatbot
+## Fixed questions and selected model summary
 
-> Replace free-text chatbot messages with reliable, factual questions about the prototype. Keep the chatbot honest about its limits and do not make an LLM request for these answers.
+> Replace free-text chatbot messages with reliable factual questions, while retaining one deliberate model contribution that can be evaluated and reviewed.
 
-**Decision:** Provide seven visible question buttons backed by local scripts. The panel accepts no free text, stores no chatbot messages, and calls no model. One “What is my saved setup?” answer reads only explicit local profile choices and the completed-practice count.
+**Decision:** Provide seven visible question buttons backed by local scripts plus one post-completion “Create a brief practice summary” button. The panel accepts no free text. Only the selected summary prompt/reply is persisted; its backend model context is session timing, explicit profile choices, and completed-practice count—not journal text or a disclosure.
 
 ## Browser proxy revision
 
@@ -36,13 +36,13 @@ This curated record excludes credentials, personal information, real distress di
 
 > Make the saved-history view useful for fictional evaluation without turning it into a score or asking for more disclosure.
 
-**Decision:** Each session card shows the active seconds and whether it was directly chosen or an optional repeat, alongside its neutral outcome and date. No chatbot messages are collected or shown in history.
+**Decision:** Each session card shows the active seconds and whether it was directly chosen or an optional repeat, alongside its neutral outcome and date. History separately shows only selected fixed model-summary prompt/reply pairs, not local FAQ taps or free-text content.
 
 ## Optional profile and factual chatbot revision
 
 > Add a demonstrable user profile without collecting emotional, health, or inferred-state data. Make every profile setting optional, editable, and resettable. Let the interface and a factual chatbot use only explicit profile choices and neutral usage history; do not change a canonical skill step.
 
-**Decision:** Store only an optional display name, cue-style selection, and practice-aim selection in local SQLite. The home screen adapts its greeting and cue explanation; the latest completed skill remains an optional repeat shortcut. The factual chatbot’s saved-setup question uses only those explicit choices and the completed-practice count.
+**Decision:** Store only an optional display name, cue-style selection, and practice-aim selection in local SQLite. The home screen adapts its greeting and cue explanation; the latest completed skill remains an optional repeat shortcut. The factual chatbot’s saved-setup question and selected model summary use only those explicit choices and the completed-practice count.
 
 ## Pacing-control revision
 
@@ -60,4 +60,4 @@ This curated record excludes credentials, personal information, real distress di
 
 > Add reliable common questions about the website without needing the language model to invent factual details.
 
-**Decision:** Add visible question buttons in the chatbot and map their exact prompts to local scripted answers. The factual answers cover scope, breathing timing, stopping, saved data, journal separation, profile behavior, and the saved setup; they do not call a model or retain chatbot messages.
+**Decision:** Add visible question buttons in the chatbot and map their exact prompts to local scripted answers. The factual answers cover scope, breathing timing, stopping, saved data, journal separation, profile behavior, and the saved setup; they do not call a model. A visibly distinct fixed summary button is the sole model path and its exchange is retained for review.
