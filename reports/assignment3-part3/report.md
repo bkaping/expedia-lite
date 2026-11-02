@@ -3,7 +3,7 @@
 ## Submission checkpoint
 
 - Repository: `https://github.com/bkaping/expedia-lite`
-- Implementation checkpoint: **replace with the verified Part 3.3 commit hash before upload**
+- Implementation checkpoint: [`e9e8c6240d8938ee13459b04f1ee34e6df3c6c4c`](https://github.com/bkaping/expedia-lite/commit/e9e8c6240d8938ee13459b04f1ee34e6df3c6c4c) — `feat: complete assignment 3 evaluation`
 - Run instructions: [README](../../README.md)
 - Evaluation evidence: [15 scenarios and behavior checks](../../docs/assignment3-evaluation.md)
 - Design/safety note: [design note](../../docs/design.md)
