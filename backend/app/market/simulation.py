@@ -56,6 +56,8 @@ class SimulationStore:
         validate_bars(dataset['bars'])
         if dataset['interval']!='1h':
             raise ValueError('Only 1-hour historical datasets are supported')
+        if any(b['time']-a['time']<3600 for a,b in zip(dataset['bars'],dataset['bars'][1:])):
+            raise ValueError('Historical hourly intervals must not overlap')
         if any(not bar['complete'] or bar['time']+3600>dataset['fetched_at'] for bar in dataset['bars']):
             raise ValueError('Dataset includes an unfinished interval')
         content=json.dumps({k:dataset[k] for k in ('symbol','interval','source','bars')},sort_keys=True,separators=(',',':'))
@@ -122,14 +124,17 @@ class SimulationStore:
         identifier=uuid.uuid4().hex
         with self.market.connect() as db:
             db.execute('BEGIN IMMEDIATE')
+            if db.execute('SELECT 1 FROM paper_accounts WHERE symbol=? AND active=1',(symbol,)).fetchone():
+                raise ValueError('Stop the active paper strategy before starting a new account')
             # Seed closed history and capture cursor within one transaction; no historical orders.
             rows=db.execute('''SELECT candle FROM candle_events WHERE id IN
                 (SELECT MAX(id) FROM candle_events WHERE symbol=? GROUP BY time) ORDER BY time DESC LIMIT 300''',(symbol,)).fetchall()
             for row in reversed(rows):
                 bar=json.loads(row['candle'])
                 sim.close_bar(bar,trade=False)
+            sim.timeline=[]
+            sim.points=[]
             cursor=db.execute('SELECT COALESCE(MAX(id),0) FROM candle_events').fetchone()[0]
-            db.execute('UPDATE paper_accounts SET active=0 WHERE symbol=?',(symbol,))
             db.execute('INSERT INTO paper_accounts VALUES(?,?,?,?,?,?)',(identifier,symbol,time.time(),1,cursor,json.dumps(sim.dump())))
         return self.paper(identifier)
 
@@ -139,7 +144,9 @@ class SimulationStore:
         if not row:
             raise KeyError('Paper account not found')
         sim=Simulation.restore(json.loads(row['state']))
-        return {k:row[k] for k in ('id','symbol','created_at','active','cursor')} | {'result':sim.result(),'short':sim.indicator.short,'long':sim.indicator.long}
+        parameters={'short':sim.indicator.short,'long':sim.indicator.long,'initial_cash':float(sim.ledger.initial_cash),
+                    'fee':float(sim.ledger.fee),'slippage_bps':float(sim.ledger.slippage*10000)}
+        return {k:row[k] for k in ('id','symbol','created_at','active','cursor')} | {'result':sim.result(),'parameters':parameters,'short':sim.indicator.short,'long':sim.indicator.long}
 
     def latest_paper(self,symbol):
         with self.market.connect() as db:

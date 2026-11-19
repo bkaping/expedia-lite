@@ -1,0 +1,220 @@
+{
+  "verified_at": 1795099946.597085,
+  "dataset_id": "44e37cd3c962fa3baec80b76b5460a86be9dd819960fa5817843ff0878b0fc7c",
+  "source": "Yahoo Finance via yfinance.history; unadjusted regular-session OHLCV",
+  "fetched_at": 1795099465.369311,
+  "bars": 161,
+  "run_id": "d646b8df5fb7401f91ba676fd8ef92c6",
+  "pandas_version": "3.1.1",
+  "max_sma_absolute_error": 5.684341886080802e-14,
+  "all_crossovers_match_pandas": true,
+  "persisted_run_reopened_identically": true,
+  "every_fill_after_signal_bar": true,
+  "accounting_identities_pass": true,
+  "invalid_windows_http_status": 422,
+  "parameters": {
+    "short": 5,
+    "long": 20,
+    "initial_cash": 10000,
+    "fee": 1,
+    "slippage_bps": 5
+  },
+  "account": {
+    "initial_cash": 10000.0,
+    "cash": 0.0002104335014,
+    "quantity": 27.294663,
+    "cost_basis": 9654.214352413077,
+    "market_value": 9615.637061500764,
+    "realized_pnl": -345.7854371534211,
+    "unrealized_pnl": -38.57729091231387,
+    "equity": 9615.637271934265,
+    "total_pnl": -384.362728065735,
+    "fees_paid": 9.0,
+    "return_pct": -3.84362728065735
+  },
+  "fills": [
+    {
+      "order_id": 2,
+      "time": 1793125800,
+      "side": "buy",
+      "quantity": 28.921514,
+      "price": 345.72877776,
+      "fee": 1.0,
+      "realized_pnl": 0.0,
+      "cash_after": 0.00031381127136
+    },
+    {
+      "order_id": 3,
+      "time": 1793212200,
+      "side": "sell",
+      "quantity": 28.921514,
+      "price": 344.50765268,
+      "fee": 1.0,
+      "realized_pnl": -37.31678609697112,
+      "cash_after": 9962.683213903028
+    },
+    {
+      "order_id": 4,
+      "time": 1793284200,
+      "side": "buy",
+      "quantity": 28.461553,
+      "price": 350.00490157,
+      "fee": 1.0,
+      "realized_pnl": 0.0,
+      "cash_after": 0.00015760869067
+    },
+    {
+      "order_id": 5,
+      "time": 1793385000,
+      "side": "sell",
+      "quantity": 28.461553,
+      "price": 342.96844464,
+      "fee": 1.0,
+      "realized_pnl": -202.26849184541229,
+      "cash_after": 9760.414722057616
+    },
+    {
+      "order_id": 6,
+      "time": 1793809800,
+      "side": "buy",
+      "quantity": 27.769344,
+      "price": 351.44562401,
+      "fee": 1.0,
+      "realized_pnl": 0.0,
+      "cash_after": 0.00029162926715
+    },
+    {
+      "order_id": 7,
+      "time": 1793979000,
+      "side": "sell",
+      "quantity": 27.769344,
+      "price": 343.2782872,
+      "fee": 1.0,
+      "realized_pnl": -228.80158544075263,
+      "cash_after": 9531.613136616865
+    },
+    {
+      "order_id": 8,
+      "time": 1794245400,
+      "side": "buy",
+      "quantity": 27.219826,
+      "price": 350.13497145,
+      "fee": 1.0,
+      "realized_pnl": 0.0,
+      "cash_after": 0.00013723289625
+    },
+    {
+      "order_id": 9,
+      "time": 1794846600,
+      "side": "sell",
+      "quantity": 27.219826,
+      "price": 354.71256964,
+      "fee": 1.0,
+      "realized_pnl": 122.60142622971495,
+      "cash_after": 9654.214562846579
+    },
+    {
+      "order_id": 10,
+      "time": 1795026600,
+      "side": "buy",
+      "quantity": 27.294663,
+      "price": 353.66673523,
+      "fee": 1.0,
+      "realized_pnl": 0.0,
+      "cash_after": 0.0002104335014
+    }
+  ],
+  "orders": [
+    {
+      "id": 1,
+      "signal_time": 1793032200,
+      "known_at": 1793035800,
+      "side": "sell",
+      "status": "skipped",
+      "fill_time": null,
+      "reason": "Position/cash constraints"
+    },
+    {
+      "id": 2,
+      "signal_time": 1793122200,
+      "known_at": 1793125800,
+      "side": "buy",
+      "status": "filled",
+      "fill_time": 1793125800,
+      "reason": "Next available bar open"
+    },
+    {
+      "id": 3,
+      "signal_time": 1793208600,
+      "known_at": 1793212200,
+      "side": "sell",
+      "status": "filled",
+      "fill_time": 1793212200,
+      "reason": "Next available bar open"
+    },
+    {
+      "id": 4,
+      "signal_time": 1793280600,
+      "known_at": 1793284200,
+      "side": "buy",
+      "status": "filled",
+      "fill_time": 1793284200,
+      "reason": "Next available bar open"
+    },
+    {
+      "id": 5,
+      "signal_time": 1793381400,
+      "known_at": 1793385000,
+      "side": "sell",
+      "status": "filled",
+      "fill_time": 1793385000,
+      "reason": "Next available bar open"
+    },
+    {
+      "id": 6,
+      "signal_time": 1793806200,
+      "known_at": 1793809800,
+      "side": "buy",
+      "status": "filled",
+      "fill_time": 1793809800,
+      "reason": "Next available bar open"
+    },
+    {
+      "id": 7,
+      "signal_time": 1793975400,
+      "known_at": 1793979000,
+      "side": "sell",
+      "status": "filled",
+      "fill_time": 1793979000,
+      "reason": "Next available bar open"
+    },
+    {
+      "id": 8,
+      "signal_time": 1794241800,
+      "known_at": 1794245400,
+      "side": "buy",
+      "status": "filled",
+      "fill_time": 1794245400,
+      "reason": "Next available bar open"
+    },
+    {
+      "id": 9,
+      "signal_time": 1794843000,
+      "known_at": 1794846600,
+      "side": "sell",
+      "status": "filled",
+      "fill_time": 1794846600,
+      "reason": "Next available bar open"
+    },
+    {
+      "id": 10,
+      "signal_time": 1795023000,
+      "known_at": 1795026600,
+      "side": "buy",
+      "status": "filled",
+      "fill_time": 1795026600,
+      "reason": "Next available bar open"
+    }
+  ],
+  "max_drawdown_pct": 5.920415786849465
+}

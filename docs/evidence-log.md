@@ -39,3 +39,16 @@ This is a redacted record. It contains no credential, real distress content, par
 See [the focused verification record](assignment4-verification.md) for recording, reproducibility, and submission limitations. Public market payloads only; no `.env`, credentials, old profile/journal records, private communications, or full chat export.
 
 Final checks also exposed SQLite handles that the Python connection transaction context did not close. `MarketStore.connect()` now explicitly closes them in `finally`; the focused market suite passed with ResourceWarning enabled. Browser reconnection was adjusted to retain saved candles during a backend outage and verified by stopping/restarting FastAPI. Final-source replay/DB checks and a clean Git archive test/build passed; see the verification record.
+
+## Assignment 4.2 — November 19, 2026
+
+| Question / instruction | Generated result | Evidence / decision / remaining limit |
+|---|---|---|
+| Add two SMAs and crossovers; verify a trusted reference | `strategy.py`, `indicators.js`, indicator tests | Published 3-period values and pandas rolling/vectorized crosses agree; independent batch and incremental calculations match on 1,200 seeded observations. Unfinished values remain previews. |
+| Apply crossover to a simulated account and check accounting | Decimal `Ledger`, `Simulation`; known-account tests | $1,000 → 9.99 units → $1,197.80 net cash example verified, including both $1 fees. Source receipts and fills remain separate. |
+| Backtest without future information | `simulation.py`, immutable datasets/runs; causality tests | Each next-open fill follows an earlier close; future mutations cannot alter prior equity/signals. Real AAPL run retained its −3.84% loss rather than tuning windows. |
+| Revised approach: historical opens can be stale in a forward account | `Simulation.next_open`, paper event processor | Live path now uses the first eligible later received quote; pre-signal receipts are rejected and older corrections never rewrite fills. Synthetic zero-low fixture and test-clock mistakes were corrected after failed tests, preserving strict validation. |
+| Keep browser tests and checks on pushes | `.github/workflows/checks.yml`, `scripts/browser_smoke.py` | Actual GitHub run 44548261750 passed backend/frontend/build/browser checks on push. CI explicitly loads recorded Yahoo data with live source disabled; it is not evidence of a new Yahoo connection. |
+| Trace actual source data into stored runs and visible results | Yahoo sample, API verification, browser screenshots, 40s video | 161 real hourly bars; pandas max SMA error 5.68e-14; saved run reopens identically; account/fill history and equity shown. No new paper crossover occurred during the live clip. |
+
+[Part 4.2 verification](assignment4-part2-verification.md) records exact results, process revision, CI and limitations. No credential, private profile/journal, real account, private third-party content or full chat export is included.

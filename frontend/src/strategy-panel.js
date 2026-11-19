@@ -19,6 +19,7 @@ export default {
     const historical=computed(()=>props.mode==='backtest')
     const result=computed(()=>historical.value?run.value?.result:props.mode==='live'?paper.value?.result:null)
     const account=computed(()=>result.value?.account)
+    const recordedParameters=computed(()=>historical.value?run.value?.parameters:paper.value?.parameters)
     const money=value=>value==null?'—':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(value)
     const when=value=>value?new Date(value*1000).toISOString().replace('T',' ').slice(0,19)+' UTC':'—'
     const parameters=()=>({short:Number(short.value),long:Number(long.value),initial_cash:Number(initial.value),fee:Number(fee.value),slippage_bps:Number(slippage.value)})
@@ -46,7 +47,7 @@ export default {
     })
     const refresh=async()=>{
       const current=++revision
-      problem.value='';run.value=null;paper.value=null;dataset.value=null;datasetId.value='';datasets.value=[];runs.value=[]
+      problem.value='';message.value='';run.value=null;paper.value=null;dataset.value=null;datasetId.value='';datasets.value=[];runs.value=[]
       try {
         if(historical.value) {
           const [saved,sessions]=await Promise.all([api('/datasets?symbol='+props.symbol),api('/backtests?symbol='+props.symbol)])
@@ -58,7 +59,7 @@ export default {
           }
         } else if(props.mode==='live') {
           const value=await api('/paper?symbol='+props.symbol)
-          if(current===revision) {paper.value=value.paper; if(value.paper?.active) {short.value=value.paper.short;long.value=value.paper.long;emit('settings',{short:short.value,long:long.value})}}
+          if(current===revision) {paper.value=value.paper; if(value.paper?.active) {for(const [key,target] of [['short',short],['long',long],['initial_cash',initial],['fee',fee],['slippage_bps',slippage]]) target.value=value.paper.parameters[key];emit('settings',{short:short.value,long:long.value})}}
         }
       } catch(error) {if(current===revision)problem.value=error.message}
     }
@@ -103,7 +104,7 @@ export default {
       },3000)
     })
     onBeforeUnmount(()=>{revision++;clearInterval(poller);chart?.remove()})
-    return {short,long,initial,fee,slippage,historical,datasets,datasetId,dataset,runs,run,paper,busy,problem,message,result,account,equityEl,money,when,settings,loadDataset,history,execute,openRun,startPaper,stopPaper}
+    return {short,long,initial,fee,slippage,historical,datasets,datasetId,dataset,runs,run,paper,busy,problem,message,result,account,recordedParameters,equityEl,money,when,settings,loadDataset,history,execute,openRun,startPaper,stopPaper}
   },
   template:`<section class="strategy-panel records" aria-label="Simulated strategy">
     <div class="panel-heading"><div><div class="eyebrow">SMA CROSSOVER · SIMULATION ONLY</div><h2>{{historical?'Historical backtesting':'Forward paper account'}}</h2></div><span class="bar-state">{{historical?'RECORDED HISTORY':mode==='replay'?'REPLAY · NO TRADING':paper?.active?'PAPER STRATEGY ACTIVE':'PAPER STRATEGY STOPPED'}}</span></div>
@@ -117,7 +118,7 @@ export default {
       <p v-if="problem" role="alert" class="notice">{{problem}}</p><p v-if="message" role="status" class="strategy-message">{{message}}</p>
       <div v-if="account" class="account-grid" data-testid="account-summary"><div><span>ACCOUNT EQUITY</span><strong>{{money(account.equity)}}</strong></div><div><span>CASH</span><strong>{{money(account.cash)}}</strong></div><div><span>POSITION · {{symbol}}</span><strong>{{account.quantity.toFixed(6)}}</strong></div><div><span>REALIZED P/L</span><strong :class="account.realized_pnl>=0?'positive':'negative'">{{money(account.realized_pnl)}}</strong></div><div><span>UNREALIZED P/L</span><strong :class="account.unrealized_pnl>=0?'positive':'negative'">{{money(account.unrealized_pnl)}}</strong></div><div><span>RETURN / MAX DRAWDOWN</span><strong>{{account.return_pct.toFixed(2)}}% / {{result.max_drawdown_pct.toFixed(2)}}%</strong></div></div>
       <div class="equity-heading"><span>SIMULATED EQUITY · USD</span><span v-if="account">{{result.fills.length}} fills · {{result.closed_trades}} closed trades · {{money(account.fees_paid)}} fees</span></div><div ref="equityEl" class="equity-chart" role="img" aria-label="Simulated account equity over completed bars; summary and fill values are also shown as text."></div>
-      <p v-if="account" class="dataset-note">{{historical?'Run '+run.id.slice(0,12):'Paper account '+paper.id.slice(0,12)}} · long only · fractional units to 6 decimals · no leverage · fees included in entry cost · open positions marked to last processed price; no forced final sale.</p>
+      <p v-if="account" class="dataset-note">{{historical?'Run '+run.id.slice(0,12):'Paper account '+paper.id.slice(0,12)}} · {{money(recordedParameters?.initial_cash)}} initial · {{money(recordedParameters?.fee)}} per fill · {{recordedParameters?.slippage_bps}} bps slippage · long only · fractional units to 6 decimals · no leverage · fees included in entry cost · open positions marked to last processed price; no forced final sale.</p>
       <p v-else class="dataset-note">{{historical?'Load recorded Yahoo history, then run the strategy to see simulated outcomes.':'Start a paper account to process new market events. Warming up requires '+long+' closed observations. Replay never places orders.'}}</p>
     </div>
     <div class="panel-heading"><h2>Orders & simulated fills</h2><span class="dataset-note">{{result?.orders.length || 0}} orders · latest 12 shown</span></div>

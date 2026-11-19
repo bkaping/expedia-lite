@@ -58,3 +58,7 @@ In an isolated local browser check on October 29, the fictional profile `Avery` 
 ## Assignment 4.1 preservation — November 19, 2026
 
 The prior Vue implementation is preserved in `frontend/src/stillpoint.js` and reachable at `/stillpoint`; market data is isolated in a new SQLite database. The full backend suite, including the existing Stillpoint tests, passes after integration. The prior README and design are archived as `assignment3-readme.md` and `assignment3-design.md`. No new Stillpoint live-model or crisis-resource validation is claimed for this part.
+
+## Assignment 4.2 preservation — November 19, 2026
+
+The separate `/stillpoint` implementation and its existing backend tests remain intact while the market workstation gains indicators and simulated accounting. No new Stillpoint model or safety-resource validation is claimed in this part.

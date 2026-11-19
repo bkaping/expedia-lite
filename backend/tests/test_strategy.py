@@ -175,6 +175,9 @@ class PersistenceTests(unittest.TestCase):
         self.assertEqual(duplicate,self.dataset)
         run=self.service.run_backtest(self.dataset['id'],self.parameters)
         reopened=SimulationStore(self.market);reopened.initialize()
+        self.market.initialize()
+        with self.market.connect() as db:
+            self.assertEqual(db.execute('PRAGMA user_version').fetchone()[0],2)
         self.assertEqual(reopened.run(run['id'])['result'],run['result'])
         self.assertEqual(len(reopened.runs('AAPL')),1)
         with self.assertRaises(KeyError): reopened.dataset('missing')
@@ -182,6 +185,8 @@ class PersistenceTests(unittest.TestCase):
     def test_unfinished_history_rejected_and_empty_backtest_rejected(self):
         bad=copy.deepcopy(self.dataset);bad['bars'][-1]['complete']=False
         with self.assertRaises(ValueError): self.service.save_dataset(bad)
+        overlap=copy.deepcopy(self.dataset);overlap['bars'][1]['time']=overlap['bars'][0]['time']+1
+        with self.assertRaises(ValueError): self.service.save_dataset(overlap)
         with self.assertRaises(ValueError): self.service.run_backtest(self.dataset['id'],{**self.parameters,'long':20})
 
     def tick(self,index,price):
@@ -193,6 +198,9 @@ class PersistenceTests(unittest.TestCase):
         for i,p in enumerate([3,2,1,2]): self.tick(i,p)
         account=self.service.start_paper('AAPL',self.parameters)
         self.assertEqual(account['result']['fills'],[])
+        self.assertEqual(account['parameters'],self.parameters)
+        self.assertEqual(account['result']['equity_curve'],[])
+        with self.assertRaises(ValueError): self.service.start_paper('AAPL',self.parameters)
         self.tick(4,3);self.service.advance_paper()
         paper=self.service.paper(account['id'])
         self.assertEqual(paper['result']['orders'][0]['side'],'buy')

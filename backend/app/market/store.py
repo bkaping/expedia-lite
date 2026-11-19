@@ -47,8 +47,9 @@ class MarketStore:
                 revision INTEGER NOT NULL, received_at REAL NOT NULL,
                 reason TEXT NOT NULL, candle TEXT NOT NULL, UNIQUE(symbol,time,revision));
             CREATE INDEX IF NOT EXISTS candle_time ON candle_events(symbol,time,id);
-            PRAGMA user_version=1;
             """)
+            if db.execute("PRAGMA user_version").fetchone()[0] < 1:
+                db.execute("PRAGMA user_version=1")
 
     @staticmethod
     def normalize(message, received_at):

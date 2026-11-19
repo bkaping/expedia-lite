@@ -187,6 +187,8 @@ class Simulation:
         self.last_closed=bar['time']
         self.last_mark=bar['close']
         if trade and point['signal']:
+            if self.pending:
+                self.pending.update(status='cancelled',reason='Superseded before an eligible later quote arrived')
             order={'id':len(self.orders)+1,'signal_time':bar['time'],'known_at':known_at if known_at is not None else bar['time']+3600,
                    'side':point['signal'],'status':'pending','fill_time':None,'reason':'Waiting for next available bar open'}
             self.orders.append(order)

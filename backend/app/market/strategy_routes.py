@@ -111,7 +111,10 @@ def paper(symbol: str='AAPL'):
 @router.post('/paper')
 def start_paper(request: PaperRequest):
     check_symbol(request.symbol)
-    return simulations.start_paper(request.symbol,request.model_dump(exclude={'symbol'}))
+    try:
+        return simulations.start_paper(request.symbol,request.model_dump(exclude={'symbol'}))
+    except ValueError as error:
+        raise HTTPException(409,str(error)) from error
 
 
 @router.post('/paper/{identifier}/stop')
