@@ -1,32 +1,31 @@
-# Stillpoint — Assignment 3.2 working application
+# Assignment 4, Part 1 — Market Data and the Dashboard
 
-## Submission checkpoint
+Completed November 19, 2026. **Scope: Part 4.1 only.**
 
-- Repository: `https://github.com/bkaping/expedia-lite`
-- Implementation checkpoint: [`e9e8c6240d8938ee13459b04f1ee34e6df3c6c4c`](https://github.com/bkaping/expedia-lite/commit/e9e8c6240d8938ee13459b04f1ee34e6df3c6c4c) — `feat: complete assignment 3 evaluation`
-- Run instructions: [README](README.md)
-- Design and safety decisions: [design note](docs/design.md)
-- Verification: [verification record](docs/assignment3-verification.md)
+**Repository:** [bkaping/expedia-lite](https://github.com/bkaping/expedia-lite/tree/b37adf29ca9ac99e2fe6f12eebd10ad0d5a70a4f). **Submitted implementation and evidence commit:** [`b37adf29ca9ac99e2fe6f12eebd10ad0d5a70a4f`](https://github.com/bkaping/expedia-lite/commit/b37adf29ca9ac99e2fe6f12eebd10ad0d5a70a4f), branch `codex/assignment4-1`. This report is saved separately after pinning that implementation commit.
 
-## What works
+**Video:** [Watch/download the 40-second Part 4.1 demonstration](https://raw.githubusercontent.com/bkaping/expedia-lite/b37adf29ca9ac99e2fe6f12eebd10ad0d5a70a4f/docs/assignment4-evidence/part4-1-demo.mp4). One silent, captioned video of actual browser captures sampled once per second, with cuts between segments: live Yahoo observations, deliberate feed disconnection, saved revision replay, and reconnection. Captions explain commit-before-display and fixed-boundary replay. It contains no generated chart animation.
 
-Stillpoint implements the study-provided paced-breathing skill: six cycles of four-second inhale and six-second exhale, measured as 60 active seconds. A person may choose automatic visual timing or tap-and-hold pacing; both preserve the same canonical sequence. Pause/end controls are consequence-free, and stopped sessions are saved as neutral records.
+## Completed functionality and decisions
 
-Vue owns the skill flow, pacing cue, exits, history presentation, and persistent browser-local Crisis support panel. FastAPI owns SQLite and the model call. SQLite stores sessions, the optional explicit profile, optional fictional journal entries, and only a selected fixed model-summary exchange. The app never sends journal text or an LLM key to the browser or model provider.
+Vue displays updating one-minute candlesticks and corresponding observed-volume deltas using Lightweight Charts. FastAPI maintains a real Yahoo Finance WebSocket subscription for AAPL, MSFT, and BTC-USD; a separate backend-to-browser WebSocket delivers saved chart states. Source, source age, receipt/event time, connection status, closed/forming state, and record revisions are visible. The former Assignment 3 application is preserved at `/stillpoint`.
 
-The chatbot uses fixed buttons rather than a disclosure textbox. Website questions are local and deterministic. After a completed fictional practice, one fixed “Create a brief practice summary” prompt may use the backend model with only session timing, optional cue/aim choices, and completed-practice count. It never sends a display name or journal text. The app validates the output and uses a local fallback after unavailable, failed, or unsafe model output.
+SQLite stores immutable source revisions, every valid receipt including duplicates, and versioned candle states. Identical latest payloads add a receipt without double-counting; changed payloads create revisions. Late observations repair OHLC in source-time order and affected volume baselines. A timer persists interval closure even without another tick. Replay starts empty, applies saved revisions in receipt order, and stops at a captured event boundary, excluding future live arrivals. [Design and schema](https://github.com/bkaping/expedia-lite/blob/b37adf29ca9ac99e2fe6f12eebd10ad0d5a70a4f/docs/design.md) explain these rules and identity ambiguity.
 
-## Screenshot evidence
+## Verification and process
 
-Use these four captures with the report upload:
+All **33 backend tests**, including 11 market cases, pass; the production frontend build passes. A clean Git archive passed the backend suite using the installed project Python environment and a fresh `npm ci`/production build. Recording import into a new database also passed. Desktop/mobile layout and keyboard mode controls were checked.
 
-1. **Home screen:** coursework boundary, optional profile entry, and optional repeat shortcut.
-2. **Pacing-control screen:** automatic visual timing and tap-and-hold pacing for the unchanged 4-in / 6-out sequence.
-3. **Chatbot screen:** fixed factual questions plus the single fixed optional model-summary prompt; no free-text message field.
-4. **Saved history:** completed/stopped sessions and selected model-summary records.
+The final **real-provider** check matched WebSocket event #244 exactly to its SQLite candle, with source age about 5.8 seconds. Disconnection retained 11 candles; replay applied 114 revisions through boundary #245 and matched the database state at that boundary. Backend shutdown/reconnect also retained visible candles. Artificial test fixtures are distinct from these real-provider observations. [Verification, screenshots, and machine-readable evidence](https://github.com/bkaping/expedia-lite/blob/b37adf29ca9ac99e2fe6f12eebd10ad0d5a70a4f/docs/assignment4-verification.md).
 
-## Evidence and remaining work
+One revised approach: the initial live connection failed with a certificate-verification error. Supplying the existing certifi trusted CA bundle in generated `backend/app/market/feed.py` enabled genuine Yahoo receipts while preserving TLS verification. SQLite connection cleanup was also corrected after ResourceWarning evidence. [Curated process evidence](https://github.com/bkaping/expedia-lite/blob/b37adf29ca9ac99e2fe6f12eebd10ad0d5a70a4f/docs/evidence-log.md), [selected instructions](https://github.com/bkaping/expedia-lite/blob/b37adf29ca9ac99e2fe6f12eebd10ad0d5a70a4f/prompts/selected-prompts.md), and [AI-use disclosure](https://github.com/bkaping/expedia-lite/blob/b37adf29ca9ac99e2fe6f12eebd10ad0d5a70a4f/AI-USE.md) document Codex's role and the student's dependency approval.
 
-Backend checks cover persistence, neutral stops, profile edit/reset, local chatbot facts, fixed model-summary context, model failure, unsafe output, journal separation, and the journal phrase route. The frontend production build passes. The support route is browser-local and stays available if FastAPI or the model request fails.
+## Limitations and reproduction
 
-The later Part 3.3 package adds the 15 fictional scenarios, cross-case behavior checks, mocked/live comparison, surprising finding, limitation, and recording plan in [the Part 3 evaluation](docs/assignment3-evaluation.md). This prototype is not a clinical tool and does not establish clinical usefulness.
+Yahoo availability/delay is not guaranteed. These are observed-price candles, not a full exchange trade tape; a closed interval may have gaps or later corrections. Timestamp-derived identity cannot distinguish every same-millisecond trade from a revision. Volume is a best-effort cumulative-counter delta: unknown/reset handling is explicit, and crypto's rolling USD counter is not exact traded quantity. During the captured demo its deltas were zero; some premarket stock messages omitted volume. These observations do not establish exchange-quality OHLCV.
+
+This is a local, single-process coursework prototype with no authentication, retention policy, or high-throughput guarantee. Indicators, trading, backtesting, AI decisions and audio belong to later parts and are not implemented here. [README startup and offline replay](https://github.com/bkaping/expedia-lite/blob/b37adf29ca9ac99e2fe6f12eebd10ad0d5a70a4f/README.md) describe automatic database initialization, ignored DB files, and credential-free Yahoo startup. Credentials remain in ignored root `.env`.
+
+The pinned README, final evidence, and video URLs were checked without authentication and returned HTTP 200 on November 19, 2026.
+
+Upload **only this `report.md`** to Canvas. Source code and evidence remain in the linked public GitHub repository; the video link refers to the same pinned version.
