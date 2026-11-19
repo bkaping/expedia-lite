@@ -11,3 +11,12 @@
 - Preserve keyboard usability and the `prefers-reduced-motion` alternative for the visual breathing cue.
 - Run backend unit tests and a frontend production build before committing functional changes.
 - Keep `README.md`, `docs/design.md`, `docs/assignment3-verification.md`, `prompts/selected-prompts.md`, and `handoffs/current.md` concise and current when the application changes.
+
+## Assignment 4.1 market workstation
+
+- The default Vue entry is the market dashboard (`market.js`); preserve the previous Stillpoint UI at `/stillpoint` (`stillpoint.js`) and apply the guidance above to that archived application.
+- Scope this part to Yahoo Finance streaming, candlesticks/observed volume, SQLite persistence, replay, and honest evidence. Do not add indicators, trading, AI decisions, or audio for Part 4.1.
+- Backend owns the single Yahoo WebSocket connection, source/receipt timestamps, identity/revisions, atomic raw/receipt/candle writes, completion, and fixed-boundary replay. Browser receives only committed market records through FastAPI WebSockets; enable Vite `ws: true`.
+- Document timestamp-derived identity ambiguity, observed-volume limitations, late corrections, and closed-interval vs complete market coverage. Never present generated fixtures, recorded data, or a refreshed socket as proof of current live data.
+- Market SQLite initializes automatically; ignore DB/WAL files. No Yahoo credentials required. Keep any credentials in root `.env`; never disable TLS verification.
+- Keep `report.md`, `docs/assignment4-verification.md`, `docs/design.md`, README, AI-USE, selected prompts, evidence log and handoff current. Capture genuine live-source and unavailable-feed evidence; distinguish those checks from deterministic fixtures.

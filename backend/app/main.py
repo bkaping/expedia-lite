@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+import asyncio
+import contextlib
 
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,6 +23,7 @@ from .models import (
 )
 from .skills import SkillSessionNotFound, SkillsController
 from .skills_companion import SkillsCompanionController
+from .market.routes import router as market_router, store as market_store, feed as market_feed, finalize_candles
 
 
 skills_controller = SkillsController()
@@ -30,10 +33,20 @@ skills_companion_controller = SkillsCompanionController(skills_controller)
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     skills_controller.initialize()
-    yield
+    market_store.initialize()
+    tasks = [asyncio.create_task(market_feed.run()), asyncio.create_task(finalize_candles())]
+    try:
+        yield
+    finally:
+        for task in tasks:
+            task.cancel()
+        for task in tasks:
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
 
 
 app = FastAPI(title="Stillpoint Skills API", version="3.2.0", lifespan=lifespan)
+app.include_router(market_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=FRONTEND_ORIGINS,

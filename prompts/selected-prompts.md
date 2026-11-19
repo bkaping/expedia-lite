@@ -61,3 +61,11 @@ This curated record excludes credentials, personal information, real distress di
 > Add reliable common questions about the website without needing the language model to invent factual details.
 
 **Decision:** Add visible question buttons in the chatbot and map their exact prompts to local scripted answers. The factual answers cover scope, breathing timing, stopping, saved data, journal separation, profile behavior, and the saved setup; they do not call a model. A visibly distinct fixed summary button is the sole model path and its exchange is retained for review.
+
+## Assignment 4.1 — November 19, 2026
+
+User scope: “Just do 4.1.” Requirements: “Connect to Yahoo Finance … updating candlesticks and corresponding volume … WebSockets … preserve observation identity, source and receipt times, revisions, and whether a candle is complete.”
+
+Student approved both proposed dependencies after checking the existing environment: yfinance for the source stream and Lightweight Charts for charting. Implemented only the dashboard/persistence/replay portion, retaining the former app separately. Relevant generated code: `backend/app/market/store.py`, `feed.py`, `routes.py`, `frontend/src/market.js`, and `backend/tests/test_market.py`.
+
+Revised approach: real-source verification initially failed with `SSLCertVerificationError`; supplying the already-installed certifi CA bundle fixed the handshake while keeping certificate checks. Deterministic test cases cover revision, duplicate and late-arrival behavior; `scripts/verify_market_live.py` verifies actual source/socket/database equality, saved data during disconnection, and replay at a fixed boundary. See [evidence](../docs/assignment4-verification.md). No AI market decision is implemented or claimed.

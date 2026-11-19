@@ -25,3 +25,15 @@
 | 2026-11-02 | Limited live-model comparison | Two fixed no-profile fictional 60-second summary prompts returned factual outputs from `dots-studio/dots-3-note-preview:free` and `nvidia/nemotron-3.5-lightning:free`. A profile-bearing live check was not run to avoid exporting local profile data. |
 
 This is a redacted record. It contains no credential, real distress content, participant information, or full chat transcript.
+
+## Assignment 4.1 — November 19, 2026
+
+| Intended change / instruction | Resulting code or artifact | Check / decision / uncertainty |
+|---|---|---|
+| “Just do 4.1”; preserve previous coursework | `frontend/src/market.js`, `stillpoint.js`, `backend/app/market/` | Separate default dashboard and `/stillpoint`; no Part 4.2/4.3 features. |
+| CHECK → approval → install dependencies | yfinance 1.8.0, lightweight-charts 5.3.0; requirements and npm lock | Missing packages checked; student approved both; Python sandbox network restriction required permitted network retry. |
+| Connect actual Yahoo stream | `feed.py` certifi CA configuration | Initial Python default-CA handshake failed. Trusted bundle fixed it with TLS checking enabled. This is the selected failed/revised approach. |
+| Preserve duplicates, revisions, late events and completion | `store.py`, `test_market.py` | 11 deterministic market cases; 33 total tests pass. Timestamp-based identity cannot recover Yahoo's absent exchange trade IDs. |
+| Demonstrate live → backend → DB → chart; retain data when unavailable | `scripts/verify_market_live.py`, `assignment4-evidence/live-verification.json`, browser PNGs | Real Yahoo candle equals SQLite by event ID; source age visible; deliberate disconnect retains candles; fixed-boundary replay equals DB. No synthetic source data used in these checks. |
+
+See [the focused verification record](assignment4-verification.md) for recording, reproducibility, and submission limitations. Public market payloads only; no `.env`, credentials, old profile/journal records, private communications, or full chat export.

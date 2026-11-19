@@ -1,61 +1,54 @@
-# Stillpoint — Assignment 3 Mental Health Skills Prototype
+# Market workstation — Assignment 4.1
 
-Stillpoint is a localhost-only coursework prototype for **fictional scenarios only**. It is not therapy, diagnosis, crisis care, monitoring, or a service anyone should rely on during distress.
+Local Vue + FastAPI + SQLite dashboard for Yahoo Finance streaming observations. **Part 4.1 only:** one-minute candlesticks, corresponding observed volume deltas, feed/source age, durable observation revisions, and recorded replay. No trading, indicators, or AI market decisions.
 
-## Implemented Part 3.2 scope
+## Start from a clean checkout
 
-- One complete study-provided skill: paced breathing, six 4-second inhale / 6-second exhale cycles (60 active seconds).
-- A clear preparation screen with two controls for the same fixed sequence: automatic visual timing or tap-and-hold pacing. Both support a consequence-free leave route; stopped sessions are saved with their active time.
-- A browser-local **Crisis support** panel visible on every screen. It contains current U.S. 988 call, text, and chat links and remains available if FastAPI fails.
-- SQLite persistence for recent session records, an optional local profile, optional fictional journal entries, and selected model-summary exchanges.
-- An optional **Journal** page saves up to 500-character fictional entries locally in SQLite. Journal text is never sent to the chatbot or model; limited potentially urgent wording is not saved.
-- An optional profile holds only a display name, cue-style choice, and practice-aim choice. It changes the greeting and cue explanation; it can be edited or reset without completing a practice.
-- A persistent **Coursework chatbot** control opens seven fixed factual questions plus one optional fixed model-summary prompt after a completed fictional practice. It accepts no free-text messages. The model receives only session timing, cue/aim choices, and completed-practice count; selected prompt/reply pairs are saved locally for review.
-- A saved-history view plus an optional “use this practice again” shortcut after a previous completion. No setup or automatic routing occurs.
-
-5–4–3–2–1 grounding remains a documented design direction, not an implemented Part 3.2 claim.
-
-## Run locally
-
-Requirements: Python 3.11+ and Node.js 20+.
+Python 3.11+ and Node 20+ are required. Dependency installation was approved by the student on November 19, 2026; follow `AGENTS.md` before adding anything else.
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r backend/requirements.txt
-uvicorn app.main:app --app-dir backend --reload
+uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
 ```
 
 In another terminal:
 
 ```bash
 cd frontend
-npm install
-npm run dev
+npm ci
+npm run dev -- --host 127.0.0.1
 ```
 
-Open the displayed Vite URL. The development server proxies `/api` to FastAPI, so the browser uses same-origin requests in local development.
+Open [localhost:5173](http://127.0.0.1:5173). Vite proxies HTTP **and WebSockets** under `/api` to port 8000. SQLite initializes automatically at `backend/data/market.db` (WAL, schema version 1); no manual SQL or Yahoo credential is required. Optional settings go in ignored root `.env`, using `.env.example`. No browser receives credentials. Bind to loopback only: feed controls are intended for a single trusted local user.
 
-The skill, SQLite history, support panel, and local factual questions work without an API key. `OPENROUTER_API_KEY` enables only the optional fixed practice-summary prompt; the browser never receives the key.
+Choose AAPL, MSFT, or BTC-USD. Yahoo subscribes once in the backend, independently of browser tabs. The chart starts with real received observations; it does not invent historical candles. Stocks may be quiet outside market hours. Source age is measured from Yahoo's timestamp, separately from receipt time and browser connectivity. “Live” requires a source age and recent receipt within 30 seconds. Closed means the minute elapsed, not that every exchange trade was observed. Volume is an **observed change in Yahoo's cumulative counter**, with unknown/reset handling; crypto's rolling counter is not exchange trade volume. See [design limitations](docs/design.md).
 
-## Verification
+## Persistence, offline replay, and failure demo
+
+- **Recorded replay** plays saved candle revisions at 10 events/sec through a fixed database event boundary. It starts empty, preserves arrival order, and never inserts replay data into the live database. This is observation replay, not backtesting.
+- **Disconnect feed · failure demo** closes the Yahoo connection while retaining SQLite records and the browser connection. Use **Reconnect Yahoo feed** to resume.
+- To exercise recorded real Yahoo data on an offline checkout, import the included public recording into a new database before starting FastAPI:
 
 ```bash
-python3 -m unittest discover -s backend/tests -v
-cd frontend && npm run build
+.venv/bin/python scripts/market_recording.py import backend/data/replay.db docs/assignment4-evidence/yahoo-observations.jsonl
+MARKET_DB_PATH=backend/data/replay.db MARKET_FEED_ENABLED=0 .venv/bin/uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000
 ```
 
-The current checkout is verified with backend unit tests, a frontend production build, fictional browser checks, and two limited live-model calls. Browser evidence, timing, interaction controls, and remaining limitations are documented in [the verification record](docs/assignment3-verification.md) and [Part 3 evaluation](docs/assignment3-evaluation.md).
+Choose BTC-USD and Recorded replay. Recorded data is never proof of a new live connection. Export a fresh recording with `scripts/market_recording.py export backend/data/market.db /tmp/yahoo-observations.jsonl`. Databases are ignored; the curated JSONL contains public market observations only. A fresh database has no candles until a live receipt or explicit recording import.
 
-## Documentation
+## Verify
 
-- [Part 3.2 design and safety decisions](docs/design.md)
-- [Part 3 presentation walkthrough](docs/assignment3-presentation.md)
-- [Part 3.2 submission report](report.md)
-- [Verification record](docs/assignment3-verification.md)
-- [Part 3 fictional evaluation](docs/assignment3-evaluation.md)
-- [Part 3 recording plan](docs/assignment3-recording-plan.md)
-- [Selected prompts](prompts/selected-prompts.md)
-- [Evidence log](docs/evidence-log.md)
-- [AI-use disclosure](AI-USE.md)
-- [Current handoff](handoffs/current.md)
+```bash
+.venv/bin/python -m unittest discover -s backend/tests -v
+npm --prefix frontend run build
+# With the backend running and fresh BTC-USD observations available:
+.venv/bin/python scripts/verify_market_live.py
+```
+
+[Verification and evidence](docs/assignment4-verification.md) distinguish deterministic fixtures from real-provider checks. [Schema/design](docs/design.md), [submission report](report.md), [AI disclosure](AI-USE.md), [selected prompts](prompts/selected-prompts.md), and [handoff](handoffs/current.md) explain the implementation.
+
+The existing Assignment 3 Stillpoint prototype remains at `/stillpoint`; its canonical skill, browser-local support panel, and data boundaries are preserved. See the [archived README](docs/assignment3-readme.md) and [verification](docs/assignment3-verification.md).
+
+Chart library: [TradingView Lightweight Charts](https://tradingview.github.io/lightweight-charts/docs), Apache 2.0. Copyright (с) 2025 TradingView, Inc. Chart attribution and a TradingView link are visible in the dashboard. Yahoo access uses independent [yfinance WebSocket support](https://ranaroussi.github.io/yfinance/reference/yfinance.websocket.html); availability, delay, and data terms depend on Yahoo. Use for personal coursework only.

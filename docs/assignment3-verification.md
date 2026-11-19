@@ -54,3 +54,7 @@ In an isolated local browser check on October 29, the fictional profile `Avery` 
 - The journal’s narrow phrase check is not risk detection and was not evaluated on real distress content.
 - The chatbot is intentionally narrow; the two live outputs do not establish conversational usefulness or clinical usefulness.
 - Peer usability testing and the required demonstration/process recordings remain unclaimed until they are recorded.
+
+## Assignment 4.1 preservation — November 19, 2026
+
+The prior Vue implementation is preserved in `frontend/src/stillpoint.js` and reachable at `/stillpoint`; market data is isolated in a new SQLite database. The full backend suite, including the existing Stillpoint tests, passes after integration. The prior README and design are archived as `assignment3-readme.md` and `assignment3-design.md`. No new Stillpoint live-model or crisis-resource validation is claimed for this part.
