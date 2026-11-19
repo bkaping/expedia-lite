@@ -11,3 +11,4 @@ backend/data/skills_practice.db
 frontend/node_modules/
 frontend/dist/
 backend/data/*.db*
+backend/data/yfinance-cache/

@@ -24,6 +24,7 @@ from .models import (
 from .skills import SkillSessionNotFound, SkillsController
 from .skills_companion import SkillsCompanionController
 from .market.routes import router as market_router, store as market_store, feed as market_feed, finalize_candles
+from .market.strategy_routes import router as strategy_router, simulations, process_paper_accounts
 
 
 skills_controller = SkillsController()
@@ -34,7 +35,8 @@ skills_companion_controller = SkillsCompanionController(skills_controller)
 async def lifespan(_: FastAPI):
     skills_controller.initialize()
     market_store.initialize()
-    tasks = [asyncio.create_task(market_feed.run()), asyncio.create_task(finalize_candles())]
+    simulations.initialize()
+    tasks = [asyncio.create_task(market_feed.run()), asyncio.create_task(finalize_candles()), asyncio.create_task(process_paper_accounts())]
     try:
         yield
     finally:
@@ -45,8 +47,9 @@ async def lifespan(_: FastAPI):
                 await task
 
 
-app = FastAPI(title="Market Workstation and Coursework API", version="4.1.0", lifespan=lifespan)
+app = FastAPI(title="Market Workstation and Coursework API", version="4.2.0", lifespan=lifespan)
 app.include_router(market_router)
+app.include_router(strategy_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=FRONTEND_ORIGINS,

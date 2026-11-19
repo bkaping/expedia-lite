@@ -20,3 +20,12 @@
 - Document timestamp-derived identity ambiguity, observed-volume limitations, late corrections, and closed-interval vs complete market coverage. Never present generated fixtures, recorded data, or a refreshed socket as proof of current live data.
 - Market SQLite initializes automatically; ignore DB/WAL files. No Yahoo credentials required. Keep any credentials in root `.env`; never disable TLS verification.
 - Keep `report.md`, `docs/assignment4-verification.md`, `docs/design.md`, README, AI-USE, selected prompts, evidence log and handoff current. Capture genuine live-source and unavailable-feed evidence; distinguish those checks from deterministic fixtures.
+
+## Assignment 4.2 extension
+
+- Continue the published Part 4.1 workstation; its report/evidence stay archived. Part 4.2 adds SMA(5)/SMA(20), forward paper accounts and immutable historical backtests. All trades remain simulated. Part 4.3 AI/audio is outside scope.
+- Confirmed indicators consume only closed candles. Unfinished values/crossovers are previews and never submit orders. Backtests decide after close and fill only at a later bar open; forward paper orders use a later received quote, never an already-known historical open.
+- Keep historical dataset identity/source/fetch time and run parameters/results immutable in SQLite. Keep paper event cursors and order/fill history durable; duplicates and late closed-bar corrections must not replay trades.
+- Use Decimal for simulated cash/cost basis/fees. Test accounting identities, known examples, next-bar causality, prefix invariance, unfinished candles, pandas reference agreement and incremental/batch agreement.
+- Run `.github/workflows/checks.yml` on pushes: backend and frontend indicator tests, production build, and browser regression against the explicitly included real Yahoo historical snapshot. CI never depends on a live market.
+- Keep `docs/assignment4-part2-verification.md`, report, design, README, handoff, AI disclosure and curated evidence current. Explain look-ahead, survivorship and overfitting limits. Preserve all earlier coursework boundaries.
