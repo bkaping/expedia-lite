@@ -24,12 +24,14 @@ createApp({
       volume.setData(sorted.map(e=>({time:e.candle.time,value:e.candle.volume_known ? e.candle.volume : 0,color:e.candle.close>=e.candle.open?'#2c9b9977':'#df7f7977'})))
       if (!fitted && sorted.length) { chart.timeScale().fitContent(); fitted = true }
     }
-    const connect = () => {
+    const connect = (preserve = false) => {
       generation += 1
       const current = generation
       clearTimeout(retry)
       socket?.close()
-      bars.value=[]; events.value=[]; feed.value=null; fitted=false; paint()
+      if (preserve !== true) {
+        bars.value=[]; events.value=[]; feed.value=null; fitted=false; paint()
+      }
       error.value=''; replayCount.value=0; replayState.value='Starting recorded event playback'
       connection.value='connecting'
       const api = import.meta.env.VITE_API_BASE_URL || location.origin
@@ -37,7 +39,7 @@ createApp({
       url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:'
       url.search = new URLSearchParams({symbol:symbol.value,mode:mode.value,speed:'10'})
       socket = new WebSocket(url)
-      socket.onopen = () => { if(current===generation) connection.value='connected' }
+      socket.onopen = () => { if(current===generation) { connection.value='connected'; error.value='' } }
       socket.onmessage = message => {
         if(current!==generation) return
         const data = JSON.parse(message.data)
@@ -55,7 +57,7 @@ createApp({
       socket.onclose=()=>{
         if(current!==generation) return
         connection.value='disconnected'
-        if(mode.value==='live') { error.value='Backend connection lost. Retrying in 3 seconds.'; retry=setTimeout(connect,3000) }
+        if(mode.value==='live') { error.value='Backend connection lost. Retrying in 3 seconds.'; retry=setTimeout(()=>connect(true),3000) }
       }
       socket.onerror=()=> { if(current===generation) error.value='WebSocket connection unavailable' }
     }

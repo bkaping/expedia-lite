@@ -5,6 +5,7 @@ import json
 import math
 import sqlite3
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
 SOURCE = "Yahoo Finance WebSocket"
@@ -15,11 +16,16 @@ class MarketStore:
     def __init__(self, path: Path):
         self.path = path
 
+    @contextmanager
     def connect(self):
         db = sqlite3.connect(self.path, timeout=10)
         db.row_factory = sqlite3.Row
         db.execute("PRAGMA foreign_keys=ON")
-        return db
+        try:
+            with db:
+                yield db
+        finally:
+            db.close()
 
     def initialize(self):
         self.path.parent.mkdir(parents=True, exist_ok=True)

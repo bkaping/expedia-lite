@@ -37,3 +37,5 @@ This is a redacted record. It contains no credential, real distress content, par
 | Demonstrate live → backend → DB → chart; retain data when unavailable | `scripts/verify_market_live.py`, `assignment4-evidence/live-verification.json`, browser PNGs | Real Yahoo candle equals SQLite by event ID; source age visible; deliberate disconnect retains candles; fixed-boundary replay equals DB. No synthetic source data used in these checks. |
 
 See [the focused verification record](assignment4-verification.md) for recording, reproducibility, and submission limitations. Public market payloads only; no `.env`, credentials, old profile/journal records, private communications, or full chat export.
+
+Final checks also exposed SQLite handles that the Python connection transaction context did not close. `MarketStore.connect()` now explicitly closes them in `finally`; the focused market suite passed with ResourceWarning enabled. Browser reconnection was adjusted to retain saved candles during a backend outage and verified by stopping/restarting FastAPI. Final-source replay/DB checks and a clean Git archive test/build passed; see the verification record.

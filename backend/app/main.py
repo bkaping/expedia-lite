@@ -45,7 +45,7 @@ async def lifespan(_: FastAPI):
                 await task
 
 
-app = FastAPI(title="Stillpoint Skills API", version="3.2.0", lifespan=lifespan)
+app = FastAPI(title="Market Workstation and Coursework API", version="4.1.0", lifespan=lifespan)
 app.include_router(market_router)
 app.add_middleware(
     CORSMiddleware,

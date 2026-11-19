@@ -15,7 +15,7 @@ Market fixtures in [test_market.py](../backend/tests/test_market.py) verify:
 - Restart preserves observations/events; repeated initialization and duplicate detection remain valid.
 - Invalid observations do not write; connected-but-no-fresh-symbol differs from unavailable.
 
-These artificial fixtures test behavior; they do not demonstrate a live market connection.
+A focused recheck with ResourceWarning enabled also confirmed the market connection context manager closes SQLite handles after commit/rollback. These artificial fixtures test behavior; they do not demonstrate a live market connection.
 
 ## Real Yahoo / SQLite / WebSocket path
 
@@ -27,10 +27,11 @@ The automated script reads the real running backend, not an injected source or m
 
 - [Live dashboard](assignment4-evidence/live-dashboard.png): real prices, source age, live status, OHLC candles, observed-volume layer, revision counts and persisted table.
 - [Unavailable feed](assignment4-evidence/unavailable-dashboard.png): source disconnected, age increases, saved candles remain visible, backend still connected.
+- [Backend offline](assignment4-evidence/backend-offline-dashboard.png): after stopping FastAPI, saved candles remained visible through automatic reconnect attempts; the browser labeled the backend offline. The API was then restored.
 - [Recorded replay](assignment4-evidence/replay-dashboard.png): explicit recorded-data banner, ordered saved revisions, closed/forming historical flags and replay completion.
 - [40-second video](assignment4-evidence/part4-1-demo.mp4): 0–12s actual live observations; 12–20s unavailable-source condition; 20–32s saved revision replay; 32–40s source restoration. Captions identify commit-before-display and fixed-boundary replay as design/verification choices. Silent, actual browser captures sampled at 1 frame/second, with cuts between interaction segments; encoded using macOS AVFoundation via [the reproducible encoder](../scripts/create_market_demo.swift). Not a continuous high-frame-rate screen recording and not synthetic chart animation.
 
-Desktop layout checked at 1440px; narrow layout and keyboard access checked separately. Semantic controls have visible focus; equivalent OHLCV values appear in a readable table. No motion is required to interpret the market chart; the previous breathing app retains its reduced-motion alternative. Browser-console and responsive results are described only to the extent checked.
+Desktop layout checked at 1440px; 390px layout had no document overflow (390px viewport and document width), and Enter activated both replay/live controls. The initial chart resize warning was removed by using the chart library’s built-in auto-sizing alone. Semantic controls have visible focus; equivalent OHLCV values appear in a readable table. No motion is required to interpret the market chart; the previous breathing app retains its reduced-motion alternative. Browser-console and responsive results are described only to the extent checked.
 
 ## Offline reproduction
 
@@ -43,3 +44,7 @@ The first live-source run raised `SSLCertVerificationError` because the Python.o
 ## Remaining limits and submission
 
 See [design](design.md): timestamp identity ambiguity, partial observed candles, volume limitations, server-clock assumptions, low-rate full-history recomputation, no retention/authentication, and no market delay guarantee. The report and video must identify the actual submitted commit; instructor access must be confirmed. Canvas receives **only `report.md`**, with repository, commit, one 30–60-second video, supporting links, and [AI disclosure](../AI-USE.md). No indicators, simulated trading, backtesting, or AI market interaction is claimed in Part 4.1.
+
+Final-code repeat at 14:29:15 UTC: [final live verification](assignment4-evidence/final-live-verification.json) matched event #244 to SQLite, retained 11 candles with the feed unavailable, and replayed 114 candle revisions through boundary #245 to the same final database state. The earlier event #36 evidence and video remain separate observations.
+
+Clean Git archive verification passed all 33 tests using the already-installed project Python environment; a fresh `npm ci` followed by a production build also passed. The archive contained no root `.env`, generated database, or frontend node_modules. This was not a fresh Python dependency installation.

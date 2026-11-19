@@ -1,0 +1,49 @@
+{
+  "checked_at_utc": "2026-11-19T14:29:15Z",
+  "source": "real Yahoo Finance WebSocket, not mocked",
+  "live": {
+    "event_id": 244,
+    "candle": {
+      "close": 63894.96,
+      "complete": false,
+      "high": 63901.36,
+      "low": 63892.54,
+      "observations": 3,
+      "open": 63892.54,
+      "source": "Yahoo Finance WebSocket",
+      "source_time": 1795098550.0,
+      "time": 1795098540,
+      "volume": 0,
+      "volume_known": true
+    },
+    "feed": {
+      "state": "live",
+      "transport": "connected",
+      "detail": "Yahoo observations received and committed to SQLite",
+      "source": "Yahoo Finance WebSocket",
+      "source_age_seconds": 5.784959077835083,
+      "last_live_receipt": 1795098553.3869262,
+      "server_time": 1795098555.784959,
+      "stats": {
+        "revisions": 104,
+        "identities": 104,
+        "source_time": 1795098550.0,
+        "received_at": 1795098553.3832588,
+        "receipts": {
+          "new": 104
+        },
+        "highwater": 245
+      }
+    },
+    "sqlite_equals_socket": true
+  },
+  "unavailable": {
+    "state": "unavailable",
+    "saved_candles_retained": 11
+  },
+  "replay": {
+    "events_played": 114,
+    "through": 245,
+    "final_state_equals_sqlite_at_boundary": true
+  }
+}

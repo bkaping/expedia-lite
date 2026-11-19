@@ -5,6 +5,7 @@ No generated source data and no credentials are used.
 import asyncio
 import json
 import sqlite3
+import sys
 import time
 import urllib.request
 from pathlib import Path
@@ -56,7 +57,7 @@ async def verify():
             evidence['replay']={'events_played':count,'through':start['through'],'final_state_equals_sqlite_at_boundary':True}
         finally:
             control(True)
-    path=ROOT/'docs/assignment4-evidence/live-verification.json'
+    path=Path(sys.argv[1]) if len(sys.argv)>1 else ROOT/'docs/assignment4-evidence/live-verification.json'
     path.write_text(json.dumps(evidence,indent=2)+'\n')
     print(json.dumps(evidence,indent=2))
 

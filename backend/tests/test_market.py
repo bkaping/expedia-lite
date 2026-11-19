@@ -84,6 +84,9 @@ class MarketTests(unittest.TestCase):
         self.assertEqual(self.bars()[0]['volume'],0)
         self.tick(15,100,8)
         self.assertEqual(self.bars()[0]['volume'],3)
+        next_day = (self.t//86400+1)*86400
+        self.tick(next_day-self.t,100,5000)
+        self.assertFalse(self.bars()[-1]['volume_known'])
 
     def test_replay_prefix_has_no_future_revision_and_boundary_is_fixed(self):
         self.tick()
@@ -93,6 +96,8 @@ class MarketTests(unittest.TestCase):
         initial=self.store.events('AAPL',through=through)
         self.assertEqual(initial[0]['candle']['close'],100)
         self.assertFalse(initial[0]['candle']['complete'])
+        self.tick(70,110,1020)
+        self.tick(30,95,1011,received=self.t+80)
         state={}
         cursor=0
         while batch:=self.store.events('AAPL',after=cursor,limit=1):
